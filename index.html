@@ -170,6 +170,17 @@
                         <tbody id="elecTableBody"></tbody>
                     </table>
                 </div>
+                <!-- Pressure Definition Box -->
+                <div class="bg-slate-50 border-t border-slate-200 p-4">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">คำอธิบายตำแหน่งแรงดัน (Pressure Key)</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-y-2 gap-x-4">
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P1</span><span class="text-xs font-medium text-slate-600">หลังออกคอมเพรสเซอร์</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P2</span><span class="text-xs font-medium text-slate-600">หลังออกคอนเดนเซอร์</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P3</span><span class="text-xs font-medium text-slate-600">หลังออกวาล์วขยายตัว</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P4</span><span class="text-xs font-medium text-slate-600">กลับจากอีวาพอเรเตอร์</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P5</span><span class="text-xs font-medium text-slate-600">ก่อนเข้าอีวาพอเรเตอร์</span></div>
+                    </div>
+                </div>
             </div>
 
             <!-- Table: Temp Sensors -->
@@ -183,12 +194,30 @@
                 <div class="p-4 overflow-x-auto table-container">
                     <table class="w-full border-separate border-spacing-1">
                         <thead>
-                            <tr id="tempTableHeader" class="text-[9px] font-bold text-slate-400 uppercase text-center">
+                            <tr id="tempTableHeader" class="text-[10px] font-bold text-slate-400 uppercase text-center">
                                 <!-- Will be populated by JS -->
                             </tr>
                         </thead>
                         <tbody id="tempTableBody"></tbody>
                     </table>
+                </div>
+                <!-- Temp Definition Box -->
+                <div class="bg-slate-50 border-t border-slate-200 p-4">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">คำอธิบายตำแหน่งเซนเซอร์อุณหภูมิ (Temperature Key)</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-y-2 gap-x-4">
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T1</span><span class="text-xs font-medium text-slate-600">กลางห้อง</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T2</span><span class="text-xs font-medium text-slate-600">นอกอาคาร</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T3</span><span class="text-xs font-medium text-slate-600">Return air</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T4</span><span class="text-xs font-medium text-slate-600">Supply air</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T5</span><span class="text-xs font-medium text-slate-600">แผงคอยล์เย็น</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T6</span><span class="text-xs font-medium text-slate-600">หลังคอยล์ร้อน</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T7</span><span class="text-xs font-medium text-slate-600">หน้าคอยล์ร้อน</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T8</span><span class="text-xs font-medium text-slate-600">ท่อน้ำขาไป</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T9</span><span class="text-xs font-medium text-slate-600">ท่อน้ำขากลับ</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T10</span><span class="text-xs font-medium text-slate-600">Suction</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T11</span><span class="text-xs font-medium text-slate-600">Liquid</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T12</span><span class="text-xs font-medium text-slate-600">อื่นๆ</span></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -297,9 +326,16 @@
     <script>
         const times = ["12.00 น.", "12.05 น.", "12.10 น.", "12.15 น.", "12.20 น.", "12.25 น.", "12.30 น.", "12.35 น.", "12.40 น.", "12.45 น.", "12.50 น.", "12.55 น.", "13.00 น."];
         const tempLabels = [
-            "T1: กลางห้อง", "T2: นอกอาคาร", "T3: Return Air", "T4: Supply Air",
+            "T1: กลางห้อง", "T2: นอกอาคาร", "T3: Return air", "T4: Supply air",
             "T5: แผงคอยล์เย็น", "T6: หลังคอยล์ร้อน", "T7: หน้าคอยล์ร้อน", "T8: ท่อน้ำขาไป",
             "T9: ท่อน้ำขากลับ", "T10: Suction", "T11: Liquid", "T12: อื่นๆ"
+        ];
+        const presLabels = [
+            "P1: หลังออกคอมเพรสเซอร์",
+            "P2: หลังออกคอนเดนเซอร์",
+            "P3: หลังออกวาล์วขยายตัว",
+            "P4: กลับจากอีวาพอเรเตอร์",
+            "P5: ก่อนเข้าอีวาพอเรเตอร์"
         ];
 
         let tChartObj, pChartObj;
@@ -339,10 +375,10 @@
             
             // Generate Temp Header
             th.innerHTML = `<th class="p-2 text-left sticky-col bg-white">เวลา</th>` + 
-                tempLabels.map(label => `<th class="p-2 min-w-[90px]">${label.split(':')[0]}<br><span class="text-[7px] lowercase">${label.split(':')[1]}</span></th>`).join('');
+                tempLabels.map(label => `<th class="p-2 min-w-[70px]">${label.split(':')[0]}</th>`).join('');
 
             times.forEach((time, r) => {
-                // Elec & Pressure Rows
+                // Elec & Pressure Rows (Col 3-7 are P1-P5)
                 const rowE = document.createElement('tr');
                 rowE.innerHTML = `<td class="p-2 font-bold text-slate-400 sticky-col">${time}</td>` + 
                     Array(11).fill(0).map((_, c) => `<td><input type="number" step="0.01" class="data-input e-in-${r}-${c}"></td>`).join('');
@@ -410,7 +446,7 @@
             if(pChartObj) pChartObj.destroy();
             pChartObj = new Chart(document.getElementById('presChart'), {
                 type: 'line',
-                data: { labels: times, datasets: eData.slice(3, 8).map((d, i) => chartConfig(`Pressure P${i+1}`, d, `hsl(${i * 45 + 200}, 80%, 45%)`)) },
+                data: { labels: times, datasets: eData.slice(3, 8).map((d, i) => chartConfig(presLabels[i], d, `hsl(${i * 45 + 200}, 80%, 45%)`)) },
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
