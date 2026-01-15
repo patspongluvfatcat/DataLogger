@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Logger & Analytics Dashboard</title>
+    <title>Data Logger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -11,7 +11,7 @@
         
         :root {
             --primary: #4f46e5;
-            --bg-main: #f8fafc;
+            --bg-main: #f1f5f9;
         }
 
         body { 
@@ -23,39 +23,40 @@
         .glass-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .data-input {
-            width: 65px;
-            height: 32px;
+            width: 80px;
+            height: 36px;
             text-align: center;
             font-size: 0.875rem;
             font-weight: 600;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            transition: all 0.2s;
+            border-radius: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .data-input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-            background-color: #f5f3ff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+            background-color: #fff;
+            transform: translateY(-1px);
         }
 
         .tab-btn {
-            @apply pb-4 px-2 text-sm font-bold uppercase tracking-widest border-b-4 border-transparent transition-all text-slate-400 hover:text-indigo-600;
+            @apply pb-4 px-4 text-sm font-bold uppercase tracking-widest border-b-4 border-transparent transition-all text-slate-400 hover:text-indigo-600;
         }
 
         .nav-active {
-            @apply border-indigo-600 text-indigo-600 font-bold !important;
+            @apply border-indigo-600 text-indigo-600 font-black !important;
         }
 
         .sticky-col {
             position: sticky;
             left: 0;
-            background: #f8fafc;
+            background: #ffffff;
             z-index: 10;
             border-right: 2px solid #e2e8f0;
         }
@@ -66,15 +67,25 @@
             width: 100%;
         }
 
+        .table-container {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .table-container::-webkit-scrollbar { height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: transparent; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
         @keyframes pulse-dot {
             0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.6; }
+            50% { transform: scale(1.4); opacity: 0.5; }
             100% { transform: scale(1); opacity: 1; }
         }
         .live-dot { animation: pulse-dot 2s infinite; }
-
-        .table-container::-webkit-scrollbar { height: 6px; }
-        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body class="pb-12">
@@ -87,8 +98,8 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
                 <div>
-                    <h1 class="text-lg font-black tracking-tight uppercase leading-none">AC Data Center</h1>
-                    <span class="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">Laboratory Monitoring</span>
+                    <h1 class="text-lg font-black tracking-tight uppercase leading-none">DATA LOGGER</h1>
+                    <span class="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase"> Monitoring..</span>
                 </div>
             </div>
             
@@ -101,7 +112,7 @@
                 <div class="flex items-center gap-3">
                     <div class="text-right">
                         <p class="text-xs font-bold">กำนันโต้ง</p>
-                        <p class="text-[9px] text-emerald-500 font-black uppercase">Lead Researcher</p>
+                        <p class="text-[9px] text-emerald-500 font-black uppercase">หิวกระเพราหมูกรอบไข่ดาว</p>
                     </div>
                     <div class="w-9 h-9 rounded-full bg-slate-700 border-2 border-indigo-500/50 flex items-center justify-center font-bold text-xs">KT</div>
                 </div>
@@ -127,12 +138,12 @@
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-end">
                     <div class="lg:col-span-3">
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Case Selection</label>
-                        <select id="caseSelector" onchange="toggleWaterInput()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all cursor-pointer">
-                            <option value="case1">3.5.1 ระบบปรับอากาศแบบธรรมดา</option>
-                            <option value="case2">3.5.2 ระบบใช้น้ำประปาส่งตรง (Heat Exchanger)</option>
-                            <option value="case3">3.5.3 ระบบใช้น้ำหล่อเย็นส่งตรง (Heat Exchanger)</option>
-                            <option value="case4">3.5.4 ระบบใช้น้ำหล่อเย็นผ่านถังเก็บ (7°C / 10°C)</option>
-                            <option value="case5">3.5.5 ระบบใช้น้ำประปาผ่านถังเก็บ (7°C / 10°C)</option>
+                        <select id="caseSelector" onchange="updateCaseInfo()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all cursor-pointer">
+                            <option value="3.5.1 ระบบปรับอากาศแบบธรรมดา">3.5.1 ระบบปรับอากาศแบบธรรมดา</option>
+                            <option value="3.5.2 ระบบใช้น้ำประปาส่งตรง (Heat Exchanger)">3.5.2 ระบบใช้น้ำประปาส่งตรง (Heat Exchanger)</option>
+                            <option value="3.5.3 ระบบใช้น้ำหล่อเย็นส่งตรง (Heat Exchanger)">3.5.3 ระบบใช้น้ำหล่อเย็นส่งตรง (Heat Exchanger)</option>
+                            <option value="3.5.4 ระบบใช้น้ำหล่อเย็นผ่านถังเก็บ (7°C / 10°C)">3.5.4 ระบบใช้น้ำหล่อเย็นผ่านถังเก็บ (7°C / 10°C)</option>
+                            <option value="3.5.5 ระบบใช้น้ำประปาผ่านถังเก็บ (7°C / 10°C)">3.5.5 ระบบใช้น้ำประปาผ่านถังเก็บ (7°C / 10°C)</option>
                         </select>
                     </div>
                     <div id="waterInputGroup" class="hidden animate-fade-in">
@@ -142,137 +153,141 @@
                 </div>
             </div>
 
-            <!-- Table: Electrical & Pressure -->
-            <div class="glass-card rounded-2xl overflow-hidden">
+            <!-- Table: Electrical & Pressure Log -->
+            <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
                         Electrical & Pressure Log
                     </h3>
                 </div>
-                <div class="p-4 overflow-x-auto table-container">
-                    <table class="w-full border-separate border-spacing-1">
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full border-collapse">
                         <thead>
-                            <tr class="text-[10px] font-bold text-slate-400 uppercase text-center">
-                                <th class="p-2 text-left sticky-col bg-white min-w-[100px]">เวลา</th>
-                                <th class="p-2 bg-blue-50 rounded-t-lg">A</th>
-                                <th class="p-2 bg-blue-50 rounded-t-lg">V</th>
-                                <th class="p-2 bg-blue-50 rounded-t-lg">W</th>
-                                <th class="p-2 bg-amber-50 rounded-t-lg">P1</th>
-                                <th class="p-2 bg-amber-50">P2</th>
-                                <th class="p-2 bg-amber-50">P3</th>
-                                <th class="p-2 bg-amber-50">P4</th>
-                                <th class="p-2 bg-amber-50 rounded-t-lg">P5</th>
-                                <th class="p-2 bg-emerald-50 rounded-t-lg text-emerald-700">COP</th>
-                                <th class="p-2 bg-emerald-50 rounded-t-lg text-emerald-700">EER</th>
+                            <tr class="text-[10px] font-bold text-slate-500 uppercase bg-slate-50/50">
+                                <th class="p-4 text-left sticky-col border-b border-slate-100 min-w-[120px]">เวลา</th>
+                                <th class="p-4 border-b border-slate-100 bg-blue-50/30 text-blue-700">Amp (A)</th>
+                                <th class="p-4 border-b border-slate-100 bg-blue-50/30 text-blue-700">Volt (V)</th>
+                                <th class="p-4 border-b border-slate-100 bg-blue-50/30 text-blue-700">Power (W)</th>
+                                <th class="p-4 border-b border-slate-100 bg-amber-50/30 text-amber-700">P1 (Bar)</th>
+                                <th class="p-4 border-b border-slate-100 bg-amber-50/30 text-amber-700">P2 (Bar)</th>
+                                <th class="p-4 border-b border-slate-100 bg-amber-50/30 text-amber-700">P3 (Bar)</th>
+                                <th class="p-4 border-b border-slate-100 bg-amber-50/30 text-amber-700">P4 (Bar)</th>
+                                <th class="p-4 border-b border-slate-100 bg-emerald-50/30 text-emerald-700">COP</th>
+                                <th class="p-4 border-b border-slate-100 bg-emerald-50/30 text-emerald-700">EER</th>
                             </tr>
                         </thead>
-                        <tbody id="elecTableBody"></tbody>
+                        <tbody id="elecTableBody" class="divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
-                <!-- Pressure Definition Box -->
-                <div class="bg-slate-50 border-t border-slate-200 p-4">
+                <div class="bg-slate-50/50 border-t border-slate-100 p-4">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">คำอธิบายตำแหน่งแรงดัน (Pressure Key)</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-y-2 gap-x-4">
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P1</span><span class="text-xs font-medium text-slate-600">หลังออกคอมเพรสเซอร์</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P2</span><span class="text-xs font-medium text-slate-600">หลังออกคอนเดนเซอร์</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P3</span><span class="text-xs font-medium text-slate-600">หลังออกวาล์วขยายตัว</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P4</span><span class="text-xs font-medium text-slate-600">กลับจากอีวาพอเรเตอร์</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P5</span><span class="text-xs font-medium text-slate-600">ก่อนเข้าอีวาพอเรเตอร์</span></div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P1</span><span class="text-[11px] text-slate-600">Discharge (หลังคอมฯ)</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P2</span><span class="text-[11px] text-slate-600">Liquid Line (หลังคอนฯ)</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P3</span><span class="text-[11px] text-slate-600">Expansion (หลังวาล์ว)</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P4</span><span class="text-[11px] text-slate-600">Suction (ก่อนเข้าคอมฯ)</span></div>
                     </div>
                 </div>
             </div>
 
             <!-- Table: Temp Sensors -->
-            <div class="glass-card rounded-2xl overflow-hidden">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
                     <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <span class="w-2 h-2 bg-rose-500 rounded-full"></span>
+                        <span class="w-3 h-3 bg-rose-500 rounded-full"></span>
                         Temperature Sensors Log (°C)
                     </h3>
                 </div>
-                <div class="p-4 overflow-x-auto table-container">
-                    <table class="w-full border-separate border-spacing-1">
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full border-collapse">
                         <thead>
-                            <tr id="tempTableHeader" class="text-[10px] font-bold text-slate-400 uppercase text-center">
-                                <!-- Will be populated by JS -->
+                            <tr id="tempTableHeader" class="text-[10px] font-bold text-slate-500 uppercase bg-slate-50/50">
+                                <!-- Populated by JS -->
                             </tr>
                         </thead>
-                        <tbody id="tempTableBody"></tbody>
+                        <tbody id="tempTableBody" class="divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
-                <!-- Temp Definition Box -->
-                <div class="bg-slate-50 border-t border-slate-200 p-4">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">คำอธิบายตำแหน่งเซนเซอร์อุณหภูมิ (Temperature Key)</p>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-y-2 gap-x-4">
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T1</span><span class="text-xs font-medium text-slate-600">กลางห้อง</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T2</span><span class="text-xs font-medium text-slate-600">นอกอาคาร</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T3</span><span class="text-xs font-medium text-slate-600">Return air</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T4</span><span class="text-xs font-medium text-slate-600">Supply air</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T5</span><span class="text-xs font-medium text-slate-600">แผงคอยล์เย็น</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T6</span><span class="text-xs font-medium text-slate-600">หลังคอยล์ร้อน</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T7</span><span class="text-xs font-medium text-slate-600">หน้าคอยล์ร้อน</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T8</span><span class="text-xs font-medium text-slate-600">ท่อน้ำขาไป</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T9</span><span class="text-xs font-medium text-slate-600">ท่อน้ำขากลับ</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T10</span><span class="text-xs font-medium text-slate-600">Suction</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T11</span><span class="text-xs font-medium text-slate-600">Liquid</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">T12</span><span class="text-xs font-medium text-slate-600">อื่นๆ</span></div>
+                <!-- Temperature Key Section -->
+                <div class="bg-slate-50/50 border-t border-slate-100 p-4">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">คำอธิบายตำแหน่งเซนเซอร์อุณหภูมิ (Temp Key)</p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-2">
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T1</span><span class="text-[11px] text-slate-600">กลางห้อง</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T2</span><span class="text-[11px] text-slate-600">นอกอาคาร</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T3</span><span class="text-[11px] text-slate-600">Return air</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T4</span><span class="text-[11px] text-slate-600">Supply air</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T5</span><span class="text-[11px] text-slate-600">แผงคอยล์เย็น</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T6</span><span class="text-[11px] text-slate-600">หลังคอยล์ร้อน</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T7</span><span class="text-[11px] text-slate-600">หน้าคอยล์ร้อน</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T8</span><span class="text-[11px] text-slate-600">ท่อน้ำขาไป</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T9</span><span class="text-[11px] text-slate-600">ท่อน้ำขากลับ</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T10</span><span class="text-[11px] text-slate-600">Suction</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T11</span><span class="text-[11px] text-slate-600">Liquid</span></div>
+                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T12</span><span class="text-[11px] text-slate-600">อื่นๆ</span></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Section: Dashboard (View 2) -->
-        <div id="view-dashboard" class="hidden space-y-8 animate-fade-in">
+        <div id="view-dashboard" class="hidden space-y-6 animate-fade-in">
             
+            <!-- Analytics Case Header -->
+            <div class="glass-card rounded-xl px-5 py-3 border-l-4 border-emerald-500 flex flex-col md:flex-row justify-between items-center gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="px-2 py-0.5 bg-emerald-500 text-white text-[9px] font-black rounded uppercase tracking-tighter">Selected</div>
+                    <div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Analytics Case</p>
+                        <h2 id="analyticsCaseTitle" class="text-sm font-black text-slate-700 uppercase">3.5.1 ระบบปรับอากาศแบบธรรมดา</h2>
+                    </div>
+                </div>
+                <div id="analyticsWaterInfo" class="hidden bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-3">
+                    <p class="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Water Volume:</p>
+                    <p id="analyticsWaterVolText" class="text-xs font-black text-emerald-700">0.00 L</p>
+                </div>
+            </div>
+
             <!-- Quick View Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
                 <div class="glass-card p-4 rounded-xl border-t-4 border-rose-500">
                     <p class="text-[9px] font-black text-slate-400 uppercase">Peak Temp (T1)</p>
-                    <p id="stat-tmax" class="text-2xl font-black text-rose-600">0.0°</p>
+                    <p id="stat-tmax" class="text-xl font-black text-rose-600">0.0°</p>
                 </div>
                 <div class="glass-card p-4 rounded-xl border-t-4 border-blue-400">
                     <p class="text-[9px] font-black text-slate-400 uppercase">Low Temp (T1)</p>
-                    <p id="stat-tmin" class="text-2xl font-black text-blue-500">0.0°</p>
+                    <p id="stat-tmin" class="text-xl font-black text-blue-500">0.0°</p>
                 </div>
                 <div class="glass-card p-4 rounded-xl border-t-4 border-amber-500">
                     <p class="text-[9px] font-black text-slate-400 uppercase">Max Power (W)</p>
-                    <p id="stat-wmax" class="text-2xl font-black text-amber-600">0</p>
+                    <p id="stat-wmax" class="text-xl font-black text-amber-600">0</p>
                 </div>
                 <div class="glass-card p-4 rounded-xl border-t-4 border-orange-500">
                     <p class="text-[9px] font-black text-slate-400 uppercase">Max Current (A)</p>
-                    <p id="stat-amax" class="text-2xl font-black text-orange-600">0.00</p>
+                    <p id="stat-amax" class="text-xl font-black text-orange-600">0.00</p>
                 </div>
                 <div class="glass-card p-4 rounded-xl border-t-4 border-slate-500">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Max Voltage (V)</p>
-                    <p id="stat-vmax" class="text-2xl font-black text-slate-600">0.0</p>
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Avg Voltage (V)</p>
+                    <p id="stat-vmax" class="text-xl font-black text-slate-600">0.0</p>
                 </div>
                 <div class="glass-card p-4 rounded-xl border-t-4 border-indigo-500">
                     <p class="text-[9px] font-black text-slate-400 uppercase">Avg COP</p>
-                    <p id="stat-cop" class="text-2xl font-black text-indigo-600">0.00</p>
+                    <p id="stat-cop" class="text-xl font-black text-indigo-600">0.00</p>
                 </div>
                 <div class="glass-card p-4 rounded-xl border-t-4 border-blue-600">
                     <p class="text-[9px] font-black text-slate-400 uppercase">Avg EER</p>
-                    <p id="stat-eer" class="text-2xl font-black text-blue-700">0.00</p>
-                </div>
-                <div class="glass-card p-4 rounded-xl border-t-4 border-emerald-500 lg:col-span-3">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">ระบบทดสอบปัจจุบัน</p>
-                    <p id="stat-case" class="text-xs font-bold text-slate-700 truncate mt-1">ยังไม่ระบุ</p>
+                    <p id="stat-eer" class="text-xl font-black text-blue-700">0.00</p>
                 </div>
             </div>
 
             <!-- Charts -->
             <div class="grid grid-cols-1 gap-8">
-                <!-- Temperature Trends -->
-                <div class="glass-card rounded-3xl p-8 shadow-sm">
+                <div class="glass-card rounded-3xl p-6 md:p-8 shadow-sm">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                        <div>
-                            <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
-                                <div class="w-3 h-8 bg-rose-500 rounded-full"></div>
-                                กราฟแนวโน้มอุณหภูมิ (Temperature Trends)
-                            </h3>
-                            <p class="text-xs text-slate-400 font-bold mt-1">วิเคราะห์เซนเซอร์ T1 - T12 ทุกตำแหน่ง</p>
-                        </div>
+                        <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
+                            <div class="w-2 h-8 bg-rose-500 rounded-full"></div>
+                            Temperature Trends
+                        </h3>
                         <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
                             <button id="btn-chart-temp-line" onclick="setChartStyle('temp', 'line')" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm text-indigo-600">Line</button>
                             <button id="btn-chart-temp-bar" onclick="setChartStyle('temp', 'bar')" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg text-slate-500 hover:bg-white">Bar</button>
@@ -283,16 +298,12 @@
                     </div>
                 </div>
 
-                <!-- Pressure Trends -->
-                <div class="glass-card rounded-3xl p-8 shadow-sm">
+                <div class="glass-card rounded-3xl p-6 md:p-8 shadow-sm">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                        <div>
-                            <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
-                                <div class="w-3 h-8 bg-amber-500 rounded-full"></div>
-                                กราฟแรงดันน้ำยา (Pressure Analysis)
-                            </h3>
-                            <p class="text-xs text-slate-400 font-bold mt-1">วิเคราะห์แรงดัน P1 - P5 (Psi)</p>
-                        </div>
+                        <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
+                            <div class="w-2 h-8 bg-amber-500 rounded-full"></div>
+                            Pressure Analysis
+                        </h3>
                         <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
                             <button id="btn-chart-pres-line" onclick="setChartStyle('pres', 'line')" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm text-indigo-600">Line</button>
                             <button id="btn-chart-pres-bar" onclick="setChartStyle('pres', 'bar')" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg text-slate-500 hover:bg-white">Bar</button>
@@ -310,14 +321,14 @@
             <div class="flex items-center gap-4 mb-4 md:mb-0">
                 <div class="live-dot w-3 h-3 rounded-full bg-emerald-500"></div>
                 <div>
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Status</p>
-                    <p class="text-xs font-bold text-emerald-400">ระบบพร้อมบันทึกข้อมูล</p>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">System Status</p>
+                    <p class="text-xs font-bold text-emerald-400">System Ready</p>
                 </div>
             </div>
             <div class="flex gap-4">
                 <button onclick="resetData()" class="px-6 py-3 rounded-xl text-xs font-black text-slate-400 hover:text-white hover:bg-slate-800 transition-all uppercase">Clear All</button>
                 <button onclick="downloadCSV()" class="bg-indigo-600 hover:bg-indigo-500 px-10 py-3 rounded-xl text-xs font-black shadow-lg shadow-indigo-500/20 transition-all uppercase tracking-[0.2em] flex items-center gap-2">
-                    Download Report
+                    Export Report (CSV)
                 </button>
             </div>
         </footer>
@@ -325,45 +336,50 @@
 
     <script>
         const times = ["12.00 น.", "12.05 น.", "12.10 น.", "12.15 น.", "12.20 น.", "12.25 น.", "12.30 น.", "12.35 น.", "12.40 น.", "12.45 น.", "12.50 น.", "12.55 น.", "13.00 น."];
-        const tempLabels = [
-            "T1: กลางห้อง", "T2: นอกอาคาร", "T3: Return air", "T4: Supply air",
-            "T5: แผงคอยล์เย็น", "T6: หลังคอยล์ร้อน", "T7: หน้าคอยล์ร้อน", "T8: ท่อน้ำขาไป",
-            "T9: ท่อน้ำขากลับ", "T10: Suction", "T11: Liquid", "T12: อื่นๆ"
-        ];
-        const presLabels = [
-            "P1: หลังออกคอมเพรสเซอร์",
-            "P2: หลังออกคอนเดนเซอร์",
-            "P3: หลังออกวาล์วขยายตัว",
-            "P4: กลับจากอีวาพอเรเตอร์",
-            "P5: ก่อนเข้าอีวาพอเรเตอร์"
-        ];
+        const tempLabels = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
+        const presLabels = ["P1", "P2", "P3", "P4"];
 
         let tChartObj, pChartObj;
 
         function showTab(tab) {
             document.getElementById('view-logger').classList.toggle('hidden', tab !== 'logger');
             document.getElementById('view-dashboard').classList.toggle('hidden', tab !== 'dashboard');
-            
             const btnLog = document.getElementById('btn-logger');
             const btnDash = document.getElementById('btn-dashboard');
             
             if (tab === 'logger') {
                 btnLog.classList.add('nav-active');
-                btnLog.classList.remove('text-slate-400');
                 btnDash.classList.remove('nav-active');
-                btnDash.classList.add('text-slate-400');
             } else {
                 btnDash.classList.add('nav-active');
-                btnDash.classList.remove('text-slate-400');
                 btnLog.classList.remove('nav-active');
-                btnLog.classList.add('text-slate-400');
+                updateAnalyticsHeader();
                 renderCharts();
             }
         }
 
-        function toggleWaterInput() {
-            const val = document.getElementById('caseSelector').value;
-            document.getElementById('waterInputGroup').classList.toggle('hidden', !(val === 'case4' || val === 'case5'));
+        function updateCaseInfo() {
+            const selector = document.getElementById('caseSelector');
+            const val = selector.value;
+            const waterGroup = document.getElementById('waterInputGroup');
+            const isWaterCase = val.includes('3.5.4') || val.includes('3.5.5');
+            waterGroup.classList.toggle('hidden', !isWaterCase);
+        }
+
+        function updateAnalyticsHeader() {
+            const caseTitle = document.getElementById('caseSelector').value;
+            const waterVol = document.getElementById('waterVol').value;
+            const isWaterCase = caseTitle.includes('3.5.4') || caseTitle.includes('3.5.5');
+
+            document.getElementById('analyticsCaseTitle').innerText = caseTitle;
+            
+            const waterInfoBox = document.getElementById('analyticsWaterInfo');
+            if (isWaterCase && waterVol) {
+                waterInfoBox.classList.remove('hidden');
+                document.getElementById('analyticsWaterVolText').innerText = parseFloat(waterVol).toFixed(2) + " L";
+            } else {
+                waterInfoBox.classList.add('hidden');
+            }
         }
 
         function init() {
@@ -373,21 +389,25 @@
 
             eb.innerHTML = ''; tb.innerHTML = '';
             
-            // Generate Temp Header
-            th.innerHTML = `<th class="p-2 text-left sticky-col bg-white">เวลา</th>` + 
-                tempLabels.map(label => `<th class="p-2 min-w-[70px]">${label.split(':')[0]}</th>`).join('');
+            th.innerHTML = `<th class="p-4 text-left sticky-col border-b border-slate-100 min-w-[120px]">เวลา</th>` + 
+                tempLabels.map(label => `<th class="p-4 border-b border-slate-100">${label}</th>`).join('');
 
             times.forEach((time, r) => {
-                // Elec & Pressure Rows (Col 3-7 are P1-P5)
                 const rowE = document.createElement('tr');
-                rowE.innerHTML = `<td class="p-2 font-bold text-slate-400 sticky-col">${time}</td>` + 
-                    Array(11).fill(0).map((_, c) => `<td><input type="number" step="0.01" class="data-input e-in-${r}-${c}"></td>`).join('');
+                let elecCells = '';
+                for(let i=0; i<9; i++) {
+                    const isCalc = i >= 7;
+                    elecCells += `<td class="p-2 text-center">
+                        <input type="number" step="0.01" 
+                        class="data-input e-in-${r}-${i} ${isCalc ? 'bg-slate-50 border-dashed' : ''}">
+                    </td>`;
+                }
+                rowE.innerHTML = `<td class="p-4 font-bold text-slate-400 sticky-col">${time}</td>` + elecCells;
                 eb.appendChild(rowE);
 
-                // Temp Rows
                 const rowT = document.createElement('tr');
-                rowT.innerHTML = `<td class="p-2 font-bold text-slate-400 sticky-col">${time}</td>` + 
-                    Array(12).fill(0).map((_, c) => `<td><input type="number" step="0.1" class="data-input t-in-${r}-${c}"></td>`).join('');
+                rowT.innerHTML = `<td class="p-4 font-bold text-slate-400 sticky-col">${time}</td>` + 
+                    Array(12).fill(0).map((_, c) => `<td class="p-2 text-center"><input type="number" step="0.1" class="data-input t-in-${r}-${c}"></td>`).join('');
                 tb.appendChild(rowT);
             });
             
@@ -405,55 +425,71 @@
 
         function renderCharts() {
             const tData = getTableData('t', 12);
-            const eData = getTableData('e', 11);
+            const eData = getTableData('e', 9);
             
-            const cops = eData[9].filter(v => v > 0);
-            const eers = eData[10].filter(v => v > 0);
             const amps = eData[0].filter(v => v > 0);
             const volts = eData[1].filter(v => v > 0);
             const watts = eData[2].filter(v => v > 0);
+            const cops = eData[7].filter(v => v > 0);
+            const eers = eData[8].filter(v => v > 0);
             const t1s = tData[0].filter(v => v > 0);
 
-            // Update Stats
             document.getElementById('stat-cop').innerText = cops.length ? (cops.reduce((a,b)=>a+b,0)/cops.length).toFixed(2) : "0.00";
             document.getElementById('stat-eer').innerText = eers.length ? (eers.reduce((a,b)=>a+b,0)/eers.length).toFixed(2) : "0.00";
             document.getElementById('stat-tmax').innerText = t1s.length ? Math.max(...t1s).toFixed(1) + "°" : "0.0°";
             document.getElementById('stat-tmin').innerText = t1s.length ? Math.min(...t1s).toFixed(1) + "°" : "0.0°";
             document.getElementById('stat-wmax').innerText = watts.length ? Math.max(...watts).toFixed(0) : "0";
             document.getElementById('stat-amax').innerText = amps.length ? Math.max(...amps).toFixed(2) : "0.00";
-            document.getElementById('stat-vmax').innerText = volts.length ? Math.max(...volts).toFixed(1) : "0.0";
-            document.getElementById('stat-case').innerText = document.getElementById('caseSelector').options[document.getElementById('caseSelector').selectedIndex].text;
+            document.getElementById('stat-vmax').innerText = volts.length ? (volts.reduce((a,b)=>a+b,0)/volts.length).toFixed(1) : "0.0";
 
-            const chartConfig = (label, data, color) => ({
-                label, data, borderColor: color, backgroundColor: color + '11', fill: false, tension: 0.3, pointRadius: 3
-            });
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { size: 10, family: 'Sarabun' } } }
+                },
+                scales: {
+                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Sarabun', size: 10 } } },
+                    x: { grid: { display: false }, ticks: { font: { family: 'Sarabun', size: 10 } } }
+                }
+            };
 
-            // Temperature Chart
+            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#475569', '#22c55e'];
+
             if(tChartObj) tChartObj.destroy();
             tChartObj = new Chart(document.getElementById('tempChart'), {
                 type: 'line',
-                data: { labels: times, datasets: tData.map((d, i) => chartConfig(tempLabels[i], d, `hsl(${i * 30}, 70%, 50%)`)) },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, family: 'Sarabun' } } } 
-                    } 
-                }
+                data: { 
+                    labels: times, 
+                    datasets: tData.slice(0, 6).map((d, i) => ({
+                        label: tempLabels[i],
+                        data: d,
+                        borderColor: colors[i],
+                        backgroundColor: colors[i] + '22',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }))
+                },
+                options: chartOptions
             });
 
-            // Pressure Chart (P1-P5 is eData index 3-7)
             if(pChartObj) pChartObj.destroy();
             pChartObj = new Chart(document.getElementById('presChart'), {
                 type: 'line',
-                data: { labels: times, datasets: eData.slice(3, 8).map((d, i) => chartConfig(presLabels[i], d, `hsl(${i * 45 + 200}, 80%, 45%)`)) },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, family: 'Sarabun' } } } 
-                    } 
-                }
+                data: { 
+                    labels: times, 
+                    datasets: eData.slice(3, 7).map((d, i) => ({
+                        label: presLabels[i],
+                        data: d,
+                        borderColor: colors[i + 3],
+                        backgroundColor: colors[i + 3] + '22',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }))
+                },
+                options: chartOptions
             });
         }
 
@@ -475,10 +511,10 @@
         }
 
         function downloadCSV() {
-            let csv = "\uFEFFTime,A,V,W,P1,P2,P3,P4,P5,COP,EER," + tempLabels.join(",") + "\n";
+            let csv = "\uFEFFTime,Amp,Volt,Watt,P1,P2,P3,P4,COP,EER," + tempLabels.join(",") + "\n";
             times.forEach((t, r) => {
                 let row = [t];
-                for(let c=0; c<11; c++) row.push(document.querySelector(`.e-in-${r}-${c}`).value || 0);
+                for(let c=0; c<9; c++) row.push(document.querySelector(`.e-in-${r}-${c}`).value || 0);
                 for(let c=0; c<12; c++) row.push(document.querySelector(`.t-in-${r}-${c}`).value || 0);
                 csv += row.join(',') + "\n";
             });
@@ -486,7 +522,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `AC_Report_${new Date().toLocaleDateString()}.csv`;
+            a.download = `AC_Monitoring_Report_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
         }
 
