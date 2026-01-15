@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Logger & Dashboard | ระบบเครื่องปรับอากาศ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #64748b;
+        }
+
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 1);
+        }
+
+        .data-input {
+            width: 65px;
+            height: 32px;
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background-color: #ffffff;
+        }
+
+        .data-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            width: 75px;
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background: #f8fafc;
+            z-index: 10;
+            border-right: 2px solid #e2e8f0;
+        }
+
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .status-pulse {
+            animation: pulse-green 2s infinite ease-in-out;
+        }
+
+        .tab-active {
+            border-bottom: 4px solid #4f46e5;
+            color: #4f46e5;
+            font-weight: 800;
+        }
+
+        .chart-selector-btn {
+            @apply px-3 py-1 text-xs font-bold rounded-lg border transition-all;
+        }
+        .chart-selector-btn.active {
+            @apply bg-indigo-600 text-white border-indigo-600 shadow-sm;
+        }
+        .chart-selector-btn:not(.active) {
+            @apply bg-white text-slate-500 border-slate-200 hover:bg-slate-50;
+        }
+    </style>
+</head>
+<body class="pb-12">
+
+    <!-- แถบนำทางด้านบน -->
+    <nav class="header-gradient text-white py-4 px-6 shadow-lg mb-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-500 rounded-lg shadow-inner">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.628.283a2 2 0 01-1.186.127l-1.312-.328a2 2 0 00-1.017-.03l-3.903.882m1.274-12.83a4 4 0 115.656 5.656m-5.656-5.656l-5.656 5.656m5.656 0L2.485 2.1c.384-1.017 1.285-1.5 2.185-1.5a4.001 4.001 0 013.142 1.516"></path></svg>
+                </div>
+                <div>
+                    <!-- ปรับเปลี่ยนชื่อที่นี่ -->
+                    <h1 class="text-lg font-bold tracking-tight uppercase">Data Logger</h1>
+                    <p class="text-xs text-slate-400 font-medium tracking-widest">บันทึกข้อมูล...</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-sm font-medium">
+                <span id="currentTimeDisplay" class="bg-slate-700/50 px-3 py-1 rounded-full border border-slate-600 font-mono">--:--:--</span>
+                <span class="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30 font-bold tracking-wide">กำนันโต้ง</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ระบบ Tab Navigation -->
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 mb-8">
+        <div class="flex border-b-2 border-slate-200 gap-8">
+            <button onclick="switchTab('logger')" id="tab-logger" class="pb-3 text-slate-500 hover:text-indigo-600 transition-all tab-active flex items-center gap-2 text-sm uppercase tracking-bold font-bold">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                บันทึกข้อมูล (Logger)
+            </button>
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="pb-3 text-slate-500 hover:text-indigo-600 transition-all flex items-center gap-2 text-sm uppercase tracking-bold font-bold">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                แดชบอร์ดกราฟ (Dashboard)
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-[1400px] mx-auto px-4 sm:px-6">
+        
+        <!-- View 1: บันทึกข้อมูล -->
+        <div id="view-logger">
+            <!-- ตั้งค่า -->
+            <div class="glass-card rounded-2xl p-6 shadow-sm mb-8 border-b-4 border-b-indigo-500">
+                <div class="flex items-center gap-2 mb-6 border-l-4 border-indigo-500 pl-4">
+                    <h2 class="text-lg font-bold text-slate-800 uppercase tracking-tight">การตั้งค่าการทดสอบ (Experiment Setup)</h2>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">เลือกกรณีการทดสอบ (Test Case)</label>
+                        <select id="caseSelector" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 font-semibold transition-all shadow-sm">
+                            <option value="case1">3.5.1 ระบบปรับอากาศแบบธรรมดา</option>
+                            <option value="case2">3.5.2 ระบบใช้น้ำประปาส่งตรง (Heat Exchanger)</option>
+                            <option value="case3">3.5.3 ระบบใช้น้ำหล่อเย็นส่งตรง (Heat Exchanger)</option>
+                            <option value="case4">3.5.4 ระบบใช้น้ำหล่อเย็นผ่านถังเก็บ (7°C / 10°C)</option>
+                            <option value="case5">3.5.5 ระบบใช้น้ำประปาผ่านถังเก็บ (7°C / 10°C)</option>
+                        </select>
+                    </div>
+                    <div id="waterVolumeSection" class="hidden animate-fade-in">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">ปริมาณน้ำในถัง (Water Volume)</label>
+                        <div class="relative">
+                            <input type="number" id="manualWaterVolume" placeholder="ระบุตัวเลข" class="w-full bg-indigo-50 border border-indigo-100 text-indigo-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 font-bold shadow-sm">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-indigo-400 font-bold italic">ลิตร</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตารางที่ 1 -->
+            <div class="glass-card rounded-2xl shadow-sm mb-8 overflow-hidden">
+                <div class="bg-slate-50 border-b border-slate-100 px-6 py-4 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 font-bold shadow-sm">01</div>
+                        <h2 class="font-bold text-slate-800">ค่าทางไฟฟ้าและแรงดัน (Electrical & Pressure)</h2>
+                    </div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">หน่วย: A, V, W, PSI</div>
+                </div>
+                <div class="p-6">
+                    <div class="table-container overflow-x-auto rounded-xl border border-slate-200 shadow-inner">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600">
+                                    <th class="p-3 border-b border-slate-200 sticky-col font-bold bg-slate-100">เวลา</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-blue-700 bg-blue-50/50">A</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-blue-700 bg-blue-50/50">V</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-blue-700 bg-blue-50/50">W</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-amber-700 bg-amber-50/30">P1</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-amber-700 bg-amber-50/30">P2</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-amber-700 bg-amber-50/30">P3</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-amber-700 bg-amber-50/30">P4</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-amber-700 bg-amber-50/30">P5</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-emerald-700 bg-emerald-50">COP</th>
+                                    <th class="p-3 border-b border-slate-200 text-center text-emerald-700 bg-emerald-50">EER</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pressureTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตารางที่ 2 -->
+            <div class="glass-card rounded-2xl shadow-sm mb-8 overflow-hidden">
+                <div class="bg-slate-50 border-b border-slate-100 px-6 py-4 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 font-bold shadow-sm">02</div>
+                        <h2 class="font-bold text-slate-800 italic">ข้อมูลอุณหภูมิ (Temperature °C)</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="tempLegend" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-6 text-[10px] font-medium text-slate-500"></div>
+                    <div class="table-container overflow-x-auto rounded-xl border border-slate-200 shadow-inner">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead id="tempTableHeader"></thead>
+                            <tbody id="tempTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 2: แดชบอร์ด -->
+        <div id="view-dashboard" class="hidden">
+            <!-- ตัวเลือกประเภทกราฟ -->
+            <div class="flex justify-end gap-2 mb-4 bg-white p-2 rounded-xl border border-slate-200 shadow-sm inline-flex ml-auto float-right">
+                <span class="text-[10px] font-bold text-slate-400 uppercase self-center mr-2">รูปแบบกราฟ:</span>
+                <button onclick="setChartType('line')" id="btn-line" class="chart-selector-btn active">Line</button>
+                <button onclick="setChartType('bar')" id="btn-bar" class="chart-selector-btn">Bar</button>
+                <button onclick="setChartType('area')" id="btn-area" class="chart-selector-btn">Area</button>
+            </div>
+            <div class="clear-both"></div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+                <!-- กราฟอุณหภูมิ -->
+                <div class="glass-card rounded-2xl p-6 shadow-md border-t-4 border-t-indigo-500">
+                    <h3 class="font-bold text-slate-800 mb-6 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-6 bg-indigo-500 rounded-full"></div>
+                            แนวโน้มอุณหภูมิ (Temperature Trends)
+                        </div>
+                    </h3>
+                    <div class="h-[450px]">
+                        <canvas id="tempChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- กราฟแรงดัน -->
+                <div class="glass-card rounded-2xl p-6 shadow-md border-t-4 border-t-amber-500">
+                    <h3 class="font-bold text-slate-800 mb-6 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-6 bg-amber-500 rounded-full"></div>
+                            แนวโน้มแรงดัน (Pressure Trends)
+                        </div>
+                    </h3>
+                    <div class="h-[450px]">
+                        <canvas id="pressureChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- สรุปผล -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-indigo-500 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ค่าเฉลี่ย COP</p>
+                    <p id="avg-cop" class="text-3xl font-black text-indigo-600">0.00</p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-blue-500 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ค่าเฉลี่ย EER</p>
+                    <p id="avg-eer" class="text-3xl font-black text-blue-600">0.00</p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-emerald-500 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">อุณหภูมิสูงสุด T1</p>
+                    <p id="max-t1" class="text-3xl font-black text-emerald-600">0.0°</p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-amber-500 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">กำลังไฟสูงสุด (W)</p>
+                    <p id="max-w" class="text-3xl font-black text-amber-600">0.0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- แถบดำเนินการล่าง -->
+        <div class="flex flex-col md:flex-row gap-4 justify-between items-center p-6 bg-slate-900 rounded-2xl shadow-xl mt-4">
+            <div class="flex items-center gap-3">
+                <div class="relative flex items-center justify-center h-4 w-4">
+                    <span class="status-pulse absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </div>
+                <div>
+                    <span class="block font-bold text-emerald-400 text-sm tracking-wide">สถานะ: ระบบทำงานปกติ</span>
+                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-medium italic">Data Sync Active</span>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="clearData()" class="px-6 py-3 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 transition font-bold text-sm">ล้างข้อมูล</button>
+                <button onclick="exportToCSV()" class="px-10 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/30 font-bold text-sm flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    ส่งออก (.CSV)
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const times = ["12.00 น.", "12.05 น.", "12.10 น.", "12.15 น.", "12.20 น.", "12.25 น.", "12.30 น.", "12.35 น.", "12.40 น.", "12.45 น.", "12.50 น.", "12.55 น.", "13.00 น."];
+        const tempChannels = [
+            "T1: กลางห้อง", "T2: นอกอาคาร", "T3: Return air", "T4: Supply air",
+            "T5: แผงคอยล์เย็น", "T6: หลังคอยล์ร้อน", "T7: หน้าคอยล์ร้อน", "T8: ท่อน้ำขาไป",
+            "T9: ท่อน้ำขากลับ", "T10: Suction", "T11: Liquid", "T12: อื่นๆ"
+        ];
+        let currentChartType = 'line';
+        let tempChart, pressureChart;
+
+        function updateClock() {
+            document.getElementById('currentTimeDisplay').innerText = new Date().toLocaleTimeString('th-TH');
+        }
+        setInterval(updateClock, 1000);
+
+        function switchTab(tab) {
+            document.getElementById('view-logger').classList.toggle('hidden', tab !== 'logger');
+            document.getElementById('view-dashboard').classList.toggle('hidden', tab !== 'dashboard');
+            document.getElementById('tab-logger').classList.toggle('tab-active', tab === 'logger');
+            document.getElementById('tab-dashboard').classList.toggle('tab-active', tab === 'dashboard');
+            if (tab === 'dashboard') updateDashboard();
+        }
+
+        function setChartType(type) {
+            currentChartType = type;
+            document.querySelectorAll('.chart-selector-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${type}`).classList.add('active');
+            updateDashboard();
+        }
+
+        function initTables() {
+            const pb = document.getElementById('pressureTableBody');
+            const tb = document.getElementById('tempTableBody');
+            const leg = document.getElementById('tempLegend');
+            const ws = document.getElementById('waterVolumeSection');
+            
+            ws.classList.toggle('hidden', !['case4', 'case5'].includes(document.getElementById('caseSelector').value));
+            
+            pb.innerHTML = ''; tb.innerHTML = '';
+            leg.innerHTML = tempChannels.map(t => `<div class="bg-slate-50 p-1.5 rounded border border-slate-200 shadow-sm">${t}</div>`).join('');
+
+            times.forEach((time, r) => {
+                const pr = document.createElement('tr');
+                pr.className = "hover:bg-slate-50 transition-colors";
+                pr.innerHTML = `<td class="p-3 font-bold text-slate-500 bg-slate-50 sticky-col">${time}</td>` + 
+                    Array(10).fill(0).map((_, c) => `<td class="p-2 text-center"><input type="number" step="0.01" class="data-input p-in-${r}-${c}"></td>`).join('');
+                pb.appendChild(pr);
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-emerald-50/30 transition-colors";
+                tr.innerHTML = `<td class="p-3 font-bold text-slate-500 bg-slate-50 sticky-col">${time}</td>` + 
+                    Array(12).fill(0).map((_, c) => `<td class="p-2 text-center"><input type="number" step="0.1" class="data-input t-in-${r}-${c}"></td>`).join('');
+                tb.appendChild(tr);
+            });
+
+            document.getElementById('tempTableHeader').innerHTML = `<tr class="bg-slate-100 text-slate-600"><th class="p-3 sticky-col bg-slate-100">เวลา</th>${Array(12).fill(0).map((_, i) => `<th class="p-3 text-center">T${i+1}</th>`).join('')}</tr>`;
+        }
+
+        function updateDashboard() {
+            const getVal = (q) => Array.from(document.querySelectorAll(q)).map(i => parseFloat(i.value) || 0);
+            
+            const tData = Array(12).fill(0).map((_, c) => getVal(`[class*="t-in-"][class$="-${c}"]`));
+            const pData = Array(5).fill(0).map((_, c) => getVal(`[class*="p-in-"][class$="-${c+3}"]`));
+            
+            const cops = getVal(`[class*="p-in-"][class$="-8"]`).filter(v => v > 0);
+            const eers = getVal(`[class*="p-in-"][class$="-9"]`).filter(v => v > 0);
+            const watts = getVal(`[class*="p-in-"][class$="-2"]`);
+
+            document.getElementById('avg-cop').innerText = cops.length ? (cops.reduce((a,b)=>a+b,0)/cops.length).toFixed(2) : "0.00";
+            document.getElementById('avg-eer').innerText = eers.length ? (eers.reduce((a,b)=>a+b,0)/eers.length).toFixed(2) : "0.00";
+            document.getElementById('max-t1').innerText = Math.max(...tData[0], 0).toFixed(1) + "°";
+            document.getElementById('max-w').innerText = Math.max(...watts, 0).toFixed(1);
+
+            const isArea = currentChartType === 'area';
+            const realType = isArea ? 'line' : currentChartType;
+
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Sarabun', size: 10 } } }
+                },
+                scales: {
+                    y: { beginAtZero: false, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            };
+
+            if (tempChart) tempChart.destroy();
+            tempChart = new Chart(document.getElementById('tempChart'), {
+                type: realType,
+                data: {
+                    labels: times,
+                    datasets: tData.slice(0, 6).map((d, i) => ({
+                        label: `T${i+1}`,
+                        data: d,
+                        borderColor: `hsl(${i*60}, 70%, 50%)`,
+                        backgroundColor: isArea ? `hsla(${i*60}, 70%, 50%, 0.1)` : `hsl(${i*60}, 70%, 50%)`,
+                        fill: isArea,
+                        tension: 0.3,
+                        pointRadius: currentChartType === 'bar' ? 0 : 3
+                    }))
+                },
+                options: commonOptions
+            });
+
+            if (pressureChart) pressureChart.destroy();
+            pressureChart = new Chart(document.getElementById('pressureChart'), {
+                type: realType,
+                data: {
+                    labels: times,
+                    datasets: pData.map((d, i) => ({
+                        label: `P${i+1}`,
+                        data: d,
+                        borderColor: `hsl(${i*40 + 20}, 80%, 45%)`,
+                        backgroundColor: isArea ? `hsla(${i*40 + 20}, 80%, 45%, 0.1)` : `hsl(${i*40 + 20}, 80%, 45%)`,
+                        fill: isArea,
+                        tension: 0.3,
+                        pointRadius: currentChartType === 'bar' ? 0 : 3
+                    }))
+                },
+                options: commonOptions
+            });
+        }
+
+        function exportToCSV() {
+            let csv = "\uFEFFรายงานการทดลอง, " + document.getElementById('caseSelector').options[document.getElementById('caseSelector').selectedIndex].text + "\n\n";
+            csv += "เวลา,A,V,W,P1,P2,P3,P4,P5,COP,EER\n";
+            times.forEach((t, r) => {
+                let row = [t];
+                for(let c=0; c<10; c++) row.push(document.querySelector(`.p-in-${r}-${c}`).value || 0);
+                csv += row.join(",") + "\n";
+            });
+            const link = document.createElement("a");
+            link.href = encodeURI("data:text/csv;charset=utf-8," + csv);
+            link.download = "experiment_report.csv";
+            link.click();
+        }
+
+        function clearData() {
+            if(confirm('ยืนยันล้างข้อมูล?')) document.querySelectorAll('input').forEach(i => i.value = '');
+        }
+
+        window.onload = initTables;
+    </script>
+</body>
+</html>
