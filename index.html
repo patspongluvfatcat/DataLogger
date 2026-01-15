@@ -93,6 +93,14 @@
         .chart-selector-btn:not(.active) {
             @apply bg-white text-slate-500 border-slate-200 hover:bg-slate-50;
         }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="pb-12">
@@ -105,7 +113,6 @@
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.628.283a2 2 0 01-1.186.127l-1.312-.328a2 2 0 00-1.017-.03l-3.903.882m1.274-12.83a4 4 0 115.656 5.656m-5.656-5.656l-5.656 5.656m5.656 0L2.485 2.1c.384-1.017 1.285-1.5 2.185-1.5a4.001 4.001 0 013.142 1.516"></path></svg>
                 </div>
                 <div>
-                    <!-- ปรับเปลี่ยนชื่อที่นี่ -->
                     <h1 class="text-lg font-bold tracking-tight uppercase">Data Logger</h1>
                     <p class="text-xs text-slate-400 font-medium tracking-widest">บันทึกข้อมูล...</p>
                 </div>
@@ -143,7 +150,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2">
                         <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">เลือกกรณีการทดสอบ (Test Case)</label>
-                        <select id="caseSelector" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 font-semibold transition-all shadow-sm">
+                        <select id="caseSelector" onchange="checkCase()" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 font-semibold transition-all shadow-sm">
                             <option value="case1">3.5.1 ระบบปรับอากาศแบบธรรมดา</option>
                             <option value="case2">3.5.2 ระบบใช้น้ำประปาส่งตรง (Heat Exchanger)</option>
                             <option value="case3">3.5.3 ระบบใช้น้ำหล่อเย็นส่งตรง (Heat Exchanger)</option>
@@ -216,7 +223,6 @@
 
         <!-- View 2: แดชบอร์ด -->
         <div id="view-dashboard" class="hidden">
-            <!-- ตัวเลือกประเภทกราฟ -->
             <div class="flex justify-end gap-2 mb-4 bg-white p-2 rounded-xl border border-slate-200 shadow-sm inline-flex ml-auto float-right">
                 <span class="text-[10px] font-bold text-slate-400 uppercase self-center mr-2">รูปแบบกราฟ:</span>
                 <button onclick="setChartType('line')" id="btn-line" class="chart-selector-btn active">Line</button>
@@ -226,7 +232,6 @@
             <div class="clear-both"></div>
 
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
-                <!-- กราฟอุณหภูมิ -->
                 <div class="glass-card rounded-2xl p-6 shadow-md border-t-4 border-t-indigo-500">
                     <h3 class="font-bold text-slate-800 mb-6 flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -238,8 +243,6 @@
                         <canvas id="tempChart"></canvas>
                     </div>
                 </div>
-
-                <!-- กราฟแรงดัน -->
                 <div class="glass-card rounded-2xl p-6 shadow-md border-t-4 border-t-amber-500">
                     <h3 class="font-bold text-slate-800 mb-6 flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -326,13 +329,25 @@
             updateDashboard();
         }
 
+        // ฟังก์ชันเช็คกรณีการทดสอบเพื่อแสดง/ซ่อนช่องระบุลิตร
+        function checkCase() {
+            const caseValue = document.getElementById('caseSelector').value;
+            const waterSection = document.getElementById('waterVolumeSection');
+            // กรณี 3.5.4 และ 3.5.5
+            if (caseValue === 'case4' || caseValue === 'case5') {
+                waterSection.classList.remove('hidden');
+            } else {
+                waterSection.classList.add('hidden');
+                document.getElementById('manualWaterVolume').value = ''; // ล้างค่าเมื่อถูกซ่อน
+            }
+        }
+
         function initTables() {
             const pb = document.getElementById('pressureTableBody');
             const tb = document.getElementById('tempTableBody');
             const leg = document.getElementById('tempLegend');
-            const ws = document.getElementById('waterVolumeSection');
             
-            ws.classList.toggle('hidden', !['case4', 'case5'].includes(document.getElementById('caseSelector').value));
+            checkCase(); // ตรวจสอบสถานะเริ่มต้น
             
             pb.innerHTML = ''; tb.innerHTML = '';
             leg.innerHTML = tempChannels.map(t => `<div class="bg-slate-50 p-1.5 rounded border border-slate-200 shadow-sm">${t}</div>`).join('');
@@ -422,8 +437,10 @@
         }
 
         function exportToCSV() {
-            let csv = "\uFEFFรายงานการทดลอง, " + document.getElementById('caseSelector').options[document.getElementById('caseSelector').selectedIndex].text + "\n\n";
-            csv += "เวลา,A,V,W,P1,P2,P3,P4,P5,COP,EER\n";
+            let csv = "\uFEFFรายงานการทดลอง, " + document.getElementById('caseSelector').options[document.getElementById('caseSelector').selectedIndex].text + "\n";
+            const waterVol = document.getElementById('manualWaterVolume').value;
+            if (waterVol) csv += "ปริมาณน้ำในถัง, " + waterVol + " ลิตร\n";
+            csv += "\nเวลา,A,V,W,P1,P2,P3,P4,P5,COP,EER\n";
             times.forEach((t, r) => {
                 let row = [t];
                 for(let c=0; c<10; c++) row.push(document.querySelector(`.p-in-${r}-${c}`).value || 0);
