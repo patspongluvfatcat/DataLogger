@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTL</title>
+    <title>Data Logger & Analytics Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -11,19 +11,52 @@
         
         :root {
             --primary: #4f46e5;
-            --bg-main: #f1f5f9;
+            --bg-main: #f8fafc;
         }
 
         body { 
             font-family: 'Sarabun', sans-serif; 
-            background-color: var(--bg-main);
+            background-color: #0f172a; 
             color: #1e293b;
+            position: relative;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+            opacity: 0.4;
         }
 
         .glass-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
         }
 
         .data-input {
@@ -34,6 +67,7 @@
             font-weight: 600;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -56,14 +90,14 @@
         .sticky-col {
             position: sticky;
             left: 0;
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.95);
             z-index: 10;
             border-right: 2px solid #e2e8f0;
         }
 
         .chart-container {
             position: relative;
-            height: 400px;
+            height: 300px;
             width: 100%;
         }
 
@@ -77,7 +111,7 @@
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
 
         tr:hover td {
-            background-color: #f8fafc;
+            background-color: rgba(248, 250, 252, 0.8);
         }
 
         @keyframes pulse-dot {
@@ -86,12 +120,33 @@
             100% { transform: scale(1); opacity: 1; }
         }
         .live-dot { animation: pulse-dot 2s infinite; }
+        
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
+
+        .chart-type-toggle {
+            @apply flex bg-slate-200/50 p-1 rounded-xl gap-1;
+        }
+        .chart-icon-btn {
+            @apply p-1.5 rounded-lg transition-all flex items-center justify-center;
+        }
+        .chart-icon-btn.active {
+            @apply bg-white shadow-sm text-indigo-600;
+        }
+        .chart-icon-btn:not(.active) {
+            @apply text-slate-400 hover:bg-slate-200/50 hover:text-slate-600;
+        }
     </style>
 </head>
 <body class="pb-12">
 
-    <!-- Top Navigation -->
-    <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-50">
+    <div class="bg-mesh"></div>
+    <div class="bg-grid"></div>
+
+    <header class="bg-slate-900/90 backdrop-blur-md text-white shadow-xl sticky top-0 z-50">
         <div class="max-w-[1600px] mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-4">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -99,20 +154,20 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-black tracking-tight uppercase leading-none">DATA LOGGER</h1>
-                    <span class="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">Monitoring..</span>
+                    <span class="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">Monitoring...</span>
                 </div>
             </div>
             
             <div class="flex items-center gap-6">
                 <div class="hidden md:block text-right">
                     <p id="liveTime" class="text-sm font-mono text-indigo-400 font-bold">00:00:00</p>
-                    <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">BANGKOK,TIME</p>
+                    <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">BANGKOK , TIME</p>
                 </div>
                 <div class="h-8 w-[1px] bg-slate-700"></div>
                 <div class="flex items-center gap-3">
                     <div class="text-right">
                         <p class="text-xs font-bold">กำนันโต้ง</p>
-                        <p class="text-[9px] text-emerald-500 font-black uppercase">หิวข้าวกระเพราหมูกรอบ</p>
+                        <p class="text-[9px] text-rose-500 font-black uppercase">หิวข้าวกระเพราหมูกรอบไข่ดาว</p>
                     </div>
                     <div class="w-9 h-9 rounded-full bg-slate-700 border-2 border-indigo-500/50 flex items-center justify-center font-bold text-xs">KT</div>
                 </div>
@@ -122,29 +177,25 @@
 
     <main class="max-w-[1600px] mx-auto p-4 md:p-8">
         
-        <!-- Tab Switcher -->
-        <div class="flex gap-8 border-b-2 border-slate-200 mb-8 overflow-x-auto">
+        <div class="flex gap-8 border-b border-slate-200/50 mb-8 overflow-x-auto relative">
             <button onclick="showTab('logger')" id="btn-logger" class="tab-btn nav-active">
                 1. บันทึกข้อมูล (Logger)
             </button>
             <button onclick="showTab('dashboard')" id="btn-dashboard" class="tab-btn">
-                2. กราฟ (Graph)
+                2. วิเคราะห์กราฟ (Analytics)
             </button>
         </div>
 
-        <!-- Section: Logger (View 1) -->
         <div id="view-logger" class="space-y-6">
             <div class="glass-card rounded-2xl p-6 border-l-8 border-indigo-600">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                    <!-- Date Selection -->
                     <div class="md:col-span-3">
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Test Date</label>
-                        <input type="date" id="testDate" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all cursor-pointer">
+                        <input type="date" id="testDate" class="w-full bg-white/50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all cursor-pointer">
                     </div>
-                    <!-- Case Selection -->
                     <div class="md:col-span-7">
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Case Selection</label>
-                        <select id="caseSelector" onchange="updateCaseInfo()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all cursor-pointer">
+                        <select id="caseSelector" onchange="updateCaseInfo()" class="w-full bg-white/50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all cursor-pointer">
                             <option value="3.5.1 ระบบปรับอากาศแบบธรรมดา">3.5.1 ระบบปรับอากาศแบบธรรมดา</option>
                             <option value="3.5.2 ระบบใช้น้ำประปาส่งตรง (Heat Exchanger)">3.5.2 ระบบใช้น้ำประปาส่งตรง (Heat Exchanger)</option>
                             <option value="3.5.3 ระบบใช้น้ำหล่อเย็นส่งตรง (Heat Exchanger)">3.5.3 ระบบใช้น้ำหล่อเย็นส่งตรง (Heat Exchanger)</option>
@@ -152,17 +203,15 @@
                             <option value="3.5.5 ระบบใช้น้ำประปาผ่านถังเก็บ (7°C / 10°C)">3.5.5 ระบบใช้น้ำประปาผ่านถังเก็บ (7°C / 10°C)</option>
                         </select>
                     </div>
-                    <!-- Water Volume -->
                     <div id="waterInputGroup" class="hidden md:col-span-2 animate-fade-in">
                         <label class="block text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-3">Water (L)</label>
-                        <input type="number" id="waterVol" placeholder="0.00" class="w-full bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm font-bold text-indigo-700 outline-none">
+                        <input type="number" id="waterVol" placeholder="0.00" class="w-full bg-indigo-50/80 border border-indigo-100 rounded-xl p-4 text-sm font-bold text-indigo-700 outline-none">
                     </div>
                 </div>
             </div>
 
-            <!-- Table: Electrical & Pressure Log -->
             <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                         <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
                         Electrical & Pressure Log
@@ -184,23 +233,13 @@
                                 <th class="p-4 border-b border-slate-100 bg-emerald-50/30 text-emerald-700">EER</th>
                             </tr>
                         </thead>
-                        <tbody id="elecTableBody" class="divide-y divide-slate-50"></tbody>
+                        <tbody id="elecTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
-                </div>
-                <div class="bg-slate-50/50 border-t border-slate-100 p-4">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">คำอธิบายตำแหน่งแรงดัน (Pressure Key)</p>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P1</span><span class="text-[11px] text-slate-600">Discharge (หลังคอมฯ)</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P2</span><span class="text-[11px] text-slate-600">Liquid Line (หลังคอนฯ)</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P3</span><span class="text-[11px] text-slate-600">Expansion (หลังวาล์ว)</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">P4</span><span class="text-[11px] text-slate-600">Suction (ก่อนเข้าคอมฯ)</span></div>
-                    </div>
                 </div>
             </div>
 
-            <!-- Table: Temp Sensors -->
             <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
-                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-200">
                     <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                         <span class="w-3 h-3 bg-rose-500 rounded-full"></span>
                         Temperature Sensors Log (°C)
@@ -209,36 +248,15 @@
                 <div class="overflow-x-auto table-container">
                     <table class="w-full border-collapse">
                         <thead>
-                            <tr id="tempTableHeader" class="text-[10px] font-bold text-slate-500 uppercase bg-slate-50/50">
-                                <!-- Populated by JS -->
-                            </tr>
+                            <tr id="tempTableHeader" class="text-[10px] font-bold text-slate-500 uppercase bg-slate-50/50"></tr>
                         </thead>
-                        <tbody id="tempTableBody" class="divide-y divide-slate-50"></tbody>
+                        <tbody id="tempTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
-                </div>
-                <div class="bg-slate-50/50 border-t border-slate-100 p-4">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">คำอธิบายตำแหน่งเซนเซอร์อุณหภูมิ (Temp Key)</p>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-2">
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T1</span><span class="text-[11px] text-slate-600">กลางห้อง</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T2</span><span class="text-[11px] text-slate-600">นอกอาคาร</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T3</span><span class="text-[11px] text-slate-600">Return air</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T4</span><span class="text-[11px] text-slate-600">Supply air</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T5</span><span class="text-[11px] text-slate-600">แผงคอยล์เย็น</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T6</span><span class="text-[11px] text-slate-600">หลังคอยล์ร้อน</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T7</span><span class="text-[11px] text-slate-600">หน้าคอยล์ร้อน</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T8</span><span class="text-[11px] text-slate-600">ท่อน้ำขาไป</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T9</span><span class="text-[11px] text-slate-600">ท่อน้ำขากลับ</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T10</span><span class="text-[11px] text-slate-600">Suction</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T11</span><span class="text-[11px] text-slate-600">Liquid</span></div>
-                        <div class="flex gap-2 items-center"><span class="bg-rose-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded min-w-[22px] text-center">T12</span><span class="text-[11px] text-slate-600">อื่นๆ</span></div>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Dashboard (View 2) -->
         <div id="view-dashboard" class="hidden space-y-6 animate-fade-in">
-            <!-- Analytics Case Header -->
             <div class="glass-card rounded-xl px-5 py-3 border-l-4 border-emerald-500 flex flex-col md:flex-row justify-between items-center gap-2">
                 <div class="flex items-center gap-3">
                     <div class="px-2 py-0.5 bg-emerald-500 text-white text-[9px] font-black rounded uppercase tracking-tighter">Selected</div>
@@ -248,99 +266,114 @@
                     </div>
                 </div>
                 <div class="flex gap-4">
-                    <div id="analyticsDateBox" class="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-3">
+                    <div class="bg-white/50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-3">
                         <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Date:</p>
                         <p id="analyticsDateText" class="text-xs font-black text-slate-700">-</p>
                     </div>
-                    <div id="analyticsWaterInfo" class="hidden bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-3">
-                        <p class="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Water Volume:</p>
-                        <p id="analyticsWaterVolText" class="text-xs font-black text-emerald-700">0.00 L</p>
-                    </div>
                 </div>
             </div>
 
-            <!-- Quick View Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                <div class="glass-card p-4 rounded-xl border-t-4 border-rose-500">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Peak Temp (T1)</p>
-                    <p id="stat-tmax" class="text-xl font-black text-rose-600">0.0°</p>
+            <!-- Electrical Charts Grid (3 Graphs Row) -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Amp Chart -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="text-xs font-black text-amber-500 uppercase flex items-center gap-2">
+                            <span class="w-2 h-2 bg-amber-500 rounded-full"></span> Ampere (A)
+                        </h4>
+                        <div class="chart-type-toggle" id="ampChart-toggle">
+                            <button onclick="changeChartType('ampChart', 'line')" class="chart-icon-btn active" title="Line Chart" data-type="line">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </button>
+                            <button onclick="changeChartType('ampChart', 'bar')" class="chart-icon-btn" title="Bar Chart" data-type="bar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-container h-[250px]"><canvas id="ampChart"></canvas></div>
                 </div>
-                <div class="glass-card p-4 rounded-xl border-t-4 border-blue-400">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Low Temp (T1)</p>
-                    <p id="stat-tmin" class="text-xl font-black text-blue-500">0.0°</p>
+                <!-- Volt Chart -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="text-xs font-black text-indigo-500 uppercase flex items-center gap-2">
+                            <span class="w-2 h-2 bg-indigo-500 rounded-full"></span> Voltage (V)
+                        </h4>
+                        <div class="chart-type-toggle" id="voltChart-toggle">
+                            <button onclick="changeChartType('voltChart', 'line')" class="chart-icon-btn active" title="Line Chart" data-type="line">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </button>
+                            <button onclick="changeChartType('voltChart', 'bar')" class="chart-icon-btn" title="Bar Chart" data-type="bar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-container h-[250px]"><canvas id="voltChart"></canvas></div>
                 </div>
-                <div class="glass-card p-4 rounded-xl border-t-4 border-amber-500">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Max Power (W)</p>
-                    <p id="stat-wmax" class="text-xl font-black text-amber-600">0</p>
-                </div>
-                <div class="glass-card p-4 rounded-xl border-t-4 border-orange-500">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Max Current (A)</p>
-                    <p id="stat-amax" class="text-xl font-black text-orange-600">0.00</p>
-                </div>
-                <div class="glass-card p-4 rounded-xl border-t-4 border-slate-500">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Avg Voltage (V)</p>
-                    <p id="stat-vmax" class="text-xl font-black text-slate-600">0.0</p>
-                </div>
-                <div class="glass-card p-4 rounded-xl border-t-4 border-indigo-500">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Avg COP</p>
-                    <p id="stat-cop" class="text-xl font-black text-indigo-600">0.00</p>
-                </div>
-                <div class="glass-card p-4 rounded-xl border-t-4 border-blue-600">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Avg EER</p>
-                    <p id="stat-eer" class="text-xl font-black text-blue-700">0.00</p>
+                <!-- Power Chart -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="text-xs font-black text-emerald-500 uppercase flex items-center gap-2">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full"></span> Power (W)
+                        </h4>
+                        <div class="chart-type-toggle" id="powerChart-toggle">
+                            <button onclick="changeChartType('powerChart', 'line')" class="chart-icon-btn active" title="Line Chart" data-type="line">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </button>
+                            <button onclick="changeChartType('powerChart', 'bar')" class="chart-icon-btn" title="Bar Chart" data-type="bar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-container h-[250px]"><canvas id="powerChart"></canvas></div>
                 </div>
             </div>
 
-            <!-- Charts -->
-            <div class="grid grid-cols-1 gap-8">
-                <div class="glass-card rounded-3xl p-6 md:p-8 shadow-sm">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                        <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
-                            <div class="w-2 h-8 bg-rose-500 rounded-full"></div>
-                            Temperature Trends
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Temp Chart -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-sm font-black text-slate-800 flex items-center gap-3">
+                            <div class="w-1.5 h-6 bg-rose-500 rounded-full"></div> Temperature Trends
                         </h3>
-                        <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
-                            <button id="btn-chart-temp-line" onclick="setChartStyle('temp', 'line')" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm text-indigo-600">Line</button>
-                            <button id="btn-chart-temp-bar" onclick="setChartStyle('temp', 'bar')" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg text-slate-500 hover:bg-white">Bar</button>
+                        <div class="chart-type-toggle" id="tempChart-toggle">
+                            <button onclick="changeChartType('tempChart', 'line')" class="chart-icon-btn active" title="Line Chart" data-type="line">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </button>
+                            <button onclick="changeChartType('tempChart', 'bar')" class="chart-icon-btn" title="Bar Chart" data-type="bar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </button>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="tempChart"></canvas>
-                    </div>
+                    <div class="chart-container"><canvas id="tempChart"></canvas></div>
                 </div>
-
-                <div class="glass-card rounded-3xl p-6 md:p-8 shadow-sm">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                        <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
-                            <div class="w-2 h-8 bg-amber-500 rounded-full"></div>
-                            Pressure Analysis
+                <!-- Pressure Chart -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-sm font-black text-slate-800 flex items-center gap-3">
+                            <div class="w-1.5 h-6 bg-amber-500 rounded-full"></div> Pressure Analysis
                         </h3>
-                        <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
-                            <button id="btn-chart-pres-line" onclick="setChartStyle('pres', 'line')" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm text-indigo-600">Line</button>
-                            <button id="btn-chart-pres-bar" onclick="setChartStyle('pres', 'bar')" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg text-slate-500 hover:bg-white">Bar</button>
+                        <div class="chart-type-toggle" id="presChart-toggle">
+                            <button onclick="changeChartType('presChart', 'line')" class="chart-icon-btn active" title="Line Chart" data-type="line">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </button>
+                            <button onclick="changeChartType('presChart', 'bar')" class="chart-icon-btn" title="Bar Chart" data-type="bar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            </button>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="presChart"></canvas>
-                    </div>
+                    <div class="chart-container"><canvas id="presChart"></canvas></div>
                 </div>
             </div>
         </div>
 
-        <!-- Footer -->
         <footer class="mt-12 flex flex-col md:flex-row justify-between items-center bg-slate-900 rounded-3xl p-6 shadow-2xl text-white">
             <div class="flex items-center gap-4 mb-4 md:mb-0">
                 <div class="live-dot w-3 h-3 rounded-full bg-emerald-500"></div>
-                <div>
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">System Status</p>
-                    <p class="text-xs font-bold text-emerald-400">Online...</p>
-                </div>
+                <p class="text-xs font-bold text-emerald-400">System Ready</p>
             </div>
             <div class="flex gap-4">
                 <button onclick="resetData()" class="px-6 py-3 rounded-xl text-xs font-black text-slate-400 hover:text-white hover:bg-slate-800 transition-all uppercase">Clear All</button>
-                <button onclick="downloadCSV()" class="bg-indigo-600 hover:bg-indigo-500 px-10 py-3 rounded-xl text-xs font-black shadow-lg shadow-indigo-500/20 transition-all uppercase tracking-[0.2em] flex items-center gap-2">
-                    Export Report (CSV)
-                </button>
+                <button onclick="downloadCSV()" class="bg-indigo-600 hover:bg-indigo-500 px-10 py-3 rounded-xl text-xs font-black shadow-lg uppercase tracking-widest flex items-center gap-2">Export CSV</button>
             </div>
         </footer>
     </main>
@@ -349,202 +382,191 @@
         const times = ["12.00 น.", "12.05 น.", "12.10 น.", "12.15 น.", "12.20 น.", "12.25 น.", "12.30 น.", "12.35 น.", "12.40 น.", "12.45 น.", "12.50 น.", "12.55 น.", "13.00 น."];
         const tempLabels = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
         const presLabels = ["P1", "P2", "P3", "P4"];
-
-        let tChartObj, pChartObj;
+        let charts = {};
+        let chartTypes = {
+            ampChart: 'line',
+            voltChart: 'line',
+            powerChart: 'line',
+            tempChart: 'line',
+            presChart: 'line'
+        };
 
         function showTab(tab) {
             document.getElementById('view-logger').classList.toggle('hidden', tab !== 'logger');
             document.getElementById('view-dashboard').classList.toggle('hidden', tab !== 'dashboard');
-            const btnLog = document.getElementById('btn-logger');
-            const btnDash = document.getElementById('btn-dashboard');
-            
-            if (tab === 'logger') {
-                btnLog.classList.add('nav-active');
-                btnDash.classList.remove('nav-active');
-            } else {
-                btnDash.classList.add('nav-active');
-                btnLog.classList.remove('nav-active');
+            document.getElementById('btn-logger').classList.toggle('nav-active', tab === 'logger');
+            document.getElementById('btn-dashboard').classList.toggle('nav-active', tab === 'dashboard');
+            if (tab === 'dashboard') {
                 updateAnalyticsHeader();
-                renderCharts();
+                setTimeout(renderCharts, 50);
             }
         }
 
         function updateCaseInfo() {
-            const selector = document.getElementById('caseSelector');
-            const val = selector.value;
-            const waterGroup = document.getElementById('waterInputGroup');
-            const isWaterCase = val.includes('3.5.4') || val.includes('3.5.5');
-            waterGroup.classList.toggle('hidden', !isWaterCase);
+            const val = document.getElementById('caseSelector').value;
+            document.getElementById('waterInputGroup').classList.toggle('hidden', !(val.includes('3.5.4') || val.includes('3.5.5')));
         }
 
         function updateAnalyticsHeader() {
-            const caseTitle = document.getElementById('caseSelector').value;
-            const waterVol = document.getElementById('waterVol').value;
-            const testDate = document.getElementById('testDate').value;
-            const isWaterCase = caseTitle.includes('3.5.4') || caseTitle.includes('3.5.5');
-
-            document.getElementById('analyticsCaseTitle').innerText = caseTitle;
-            document.getElementById('analyticsDateText').innerText = testDate || "Not Set";
-            
-            const waterInfoBox = document.getElementById('analyticsWaterInfo');
-            if (isWaterCase && waterVol) {
-                waterInfoBox.classList.remove('hidden');
-                document.getElementById('analyticsWaterVolText').innerText = parseFloat(waterVol).toFixed(2) + " L";
-            } else {
-                waterInfoBox.classList.add('hidden');
-            }
+            document.getElementById('analyticsCaseTitle').innerText = document.getElementById('caseSelector').value;
+            document.getElementById('analyticsDateText').innerText = document.getElementById('testDate').value || "Not Set";
         }
 
         function init() {
-            // Set Default Date to Today
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('testDate').value = today;
-
+            document.getElementById('testDate').value = new Date().toISOString().split('T')[0];
             const eb = document.getElementById('elecTableBody');
             const tb = document.getElementById('tempTableBody');
             const th = document.getElementById('tempTableHeader');
-
-            eb.innerHTML = ''; tb.innerHTML = '';
             
-            th.innerHTML = `<th class="p-4 text-left sticky-col border-b border-slate-100 min-w-[120px]">เวลา</th>` + 
-                tempLabels.map(label => `<th class="p-4 border-b border-slate-100">${label}</th>`).join('');
+            th.innerHTML = `<th class="p-4 text-left sticky-col border-b border-slate-100 min-w-[120px]">เวลา</th>` + tempLabels.map(l => `<th class="p-4 border-b border-slate-100">${l}</th>`).join('');
 
             times.forEach((time, r) => {
-                const rowE = document.createElement('tr');
-                let elecCells = '';
-                for(let i=0; i<9; i++) {
-                    const isCalc = i >= 7;
-                    elecCells += `<td class="p-2 text-center">
-                        <input type="number" step="0.01" 
-                        class="data-input e-in-${r}-${i} ${isCalc ? 'bg-slate-50 border-dashed' : ''}">
-                    </td>`;
-                }
-                rowE.innerHTML = `<td class="p-4 font-bold text-slate-400 sticky-col">${time}</td>` + elecCells;
-                eb.appendChild(rowE);
+                let elecRow = `<td class="p-4 font-bold text-slate-400 sticky-col">${time}</td>`;
+                for(let i=0; i<9; i++) elecRow += `<td class="p-2 text-center"><input type="number" step="0.01" class="data-input e-in-${r}-${i} ${i >= 7 ? 'bg-slate-50' : ''}"></td>`;
+                const rowE = document.createElement('tr'); rowE.innerHTML = elecRow; eb.appendChild(rowE);
 
-                const rowT = document.createElement('tr');
-                rowT.innerHTML = `<td class="p-4 font-bold text-slate-400 sticky-col">${time}</td>` + 
-                    Array(12).fill(0).map((_, c) => `<td class="p-2 text-center"><input type="number" step="0.1" class="data-input t-in-${r}-${c}"></td>`).join('');
-                tb.appendChild(rowT);
+                let tempRow = `<td class="p-4 font-bold text-slate-400 sticky-col">${time}</td>`;
+                for(let i=0; i<12; i++) tempRow += `<td class="p-2 text-center"><input type="number" step="0.1" class="data-input t-in-${r}-${i}"></td>`;
+                const rowT = document.createElement('tr'); rowT.innerHTML = tempRow; tb.appendChild(rowT);
             });
-            
             setInterval(() => document.getElementById('liveTime').innerText = new Date().toLocaleTimeString('th-TH'), 1000);
         }
 
         function getTableData(prefix, cols) {
-            return Array(cols).fill(0).map((_, c) => 
-                Array(times.length).fill(0).map((_, r) => {
-                    const el = document.querySelector(`.${prefix}-in-${r}-${c}`);
-                    return el ? parseFloat(el.value) || 0 : 0;
-                })
-            );
+            return Array(cols).fill(0).map((_, c) => Array(times.length).fill(0).map((_, r) => {
+                const el = document.querySelector(`.${prefix}-in-${r}-${c}`);
+                return el ? parseFloat(el.value) || 0 : 0;
+            }));
+        }
+
+        function changeChartType(chartId, type) {
+            chartTypes[chartId] = type;
+            const toggleGroup = document.getElementById(`${chartId}-toggle`);
+            if(toggleGroup) {
+                const btns = toggleGroup.querySelectorAll('.chart-icon-btn');
+                btns.forEach(btn => {
+                    if(btn.getAttribute('data-type') === type) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+            renderCharts();
         }
 
         function renderCharts() {
             const tData = getTableData('t', 12);
             const eData = getTableData('e', 9);
-            
-            const amps = eData[0].filter(v => v > 0);
-            const volts = eData[1].filter(v => v > 0);
-            const watts = eData[2].filter(v => v > 0);
-            const cops = eData[7].filter(v => v > 0);
-            const eers = eData[8].filter(v => v > 0);
-            const t1s = tData[0].filter(v => v > 0);
+            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#8b5cf6'];
 
-            document.getElementById('stat-cop').innerText = cops.length ? (cops.reduce((a,b)=>a+b,0)/cops.length).toFixed(2) : "0.00";
-            document.getElementById('stat-eer').innerText = eers.length ? (eers.reduce((a,b)=>a+b,0)/eers.length).toFixed(2) : "0.00";
-            document.getElementById('stat-tmax').innerText = t1s.length ? Math.max(...t1s).toFixed(1) + "°" : "0.0°";
-            document.getElementById('stat-tmin').innerText = t1s.length ? Math.min(...t1s).toFixed(1) + "°" : "0.0°";
-            document.getElementById('stat-wmax').innerText = watts.length ? Math.max(...watts).toFixed(0) : "0";
-            document.getElementById('stat-amax').innerText = amps.length ? Math.max(...amps).toFixed(2) : "0.00";
-            document.getElementById('stat-vmax').innerText = volts.length ? (volts.reduce((a,b)=>a+b,0)/volts.length).toFixed(1) : "0.0";
-
-            const chartOptions = {
+            const getCommonOptions = () => ({
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { size: 10, family: 'Sarabun' } } }
-                },
-                scales: {
-                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Sarabun', size: 10 } } },
-                    x: { grid: { display: false }, ticks: { font: { family: 'Sarabun', size: 10 } } }
+                animation: { duration: 400 },
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9, family: 'Sarabun' } } },
+                    x: { grid: { display: false }, ticks: { font: { size: 9, family: 'Sarabun' } } }
                 }
-            };
-
-            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f97316', '#475569', '#22c55e'];
-
-            if(tChartObj) tChartObj.destroy();
-            tChartObj = new Chart(document.getElementById('tempChart'), {
-                type: 'line',
-                data: { 
-                    labels: times, 
-                    datasets: tData.slice(0, 6).map((d, i) => ({
-                        label: tempLabels[i],
-                        data: d,
-                        borderColor: colors[i],
-                        backgroundColor: colors[i] + '22',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointRadius: 2
-                    }))
-                },
-                options: chartOptions
             });
 
-            if(pChartObj) pChartObj.destroy();
-            pChartObj = new Chart(document.getElementById('presChart'), {
-                type: 'line',
-                data: { 
-                    labels: times, 
-                    datasets: eData.slice(3, 7).map((d, i) => ({
-                        label: presLabels[i],
-                        data: d,
-                        borderColor: colors[i + 3],
-                        backgroundColor: colors[i + 3] + '22',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointRadius: 2
-                    }))
-                },
-                options: chartOptions
-            });
-        }
+            const elecConfigs = [
+                { id: 'ampChart', label: 'Ampere', data: eData[0], color: '#f59e0b' },
+                { id: 'voltChart', label: 'Voltage', data: eData[1], color: '#6366f1' },
+                { id: 'powerChart', label: 'Power', data: eData[2], color: '#10b981' }
+            ];
 
-        function setChartStyle(target, type) {
-            const chart = target === 'temp' ? tChartObj : pChartObj;
-            if(!chart) return;
-            const prefix = target === 'temp' ? 'btn-chart-temp-' : 'btn-chart-pres-';
-            document.getElementById(prefix + 'line').className = type === 'line' ? "px-4 py-2 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm text-indigo-600" : "px-4 py-2 text-[10px] font-black uppercase rounded-lg text-slate-500 hover:bg-white";
-            document.getElementById(prefix + 'bar').className = type === 'bar' ? "px-4 py-2 text-[10px] font-black uppercase rounded-lg bg-white shadow-sm text-indigo-600" : "px-4 py-2 text-[10px] font-black uppercase rounded-lg text-slate-500 hover:bg-white";
-            chart.config.type = type;
-            chart.update();
+            elecConfigs.forEach(conf => {
+                const type = chartTypes[conf.id];
+                const ctx = document.getElementById(conf.id);
+                if(!ctx) return;
+                
+                if(charts[conf.id]) charts[conf.id].destroy();
+                charts[conf.id] = new Chart(ctx, {
+                    type: type,
+                    data: { 
+                        labels: times, 
+                        datasets: [{ 
+                            data: conf.data, 
+                            borderColor: conf.color, 
+                            backgroundColor: type === 'line' ? conf.color+'22' : conf.color+'cc', 
+                            fill: true, 
+                            tension: 0.4, 
+                            borderWidth: 2,
+                            borderRadius: type === 'bar' ? 6 : 0,
+                            barThickness: 'flex'
+                        }] 
+                    },
+                    options: getCommonOptions()
+                });
+            });
+
+            const tCtx = document.getElementById('tempChart');
+            if(tCtx) {
+                if(charts.tempChart) charts.tempChart.destroy();
+                charts.tempChart = new Chart(tCtx, {
+                    type: chartTypes.tempChart,
+                    data: { 
+                        labels: times, 
+                        datasets: tData.slice(0,6).map((d, i) => ({ 
+                            label: tempLabels[i], 
+                            data: d, 
+                            borderColor: colors[i], 
+                            backgroundColor: chartTypes.tempChart === 'bar' ? colors[i]+'cc' : 'transparent',
+                            tension: 0.3, 
+                            pointRadius: 2,
+                            borderRadius: chartTypes.tempChart === 'bar' ? 4 : 0
+                        })) 
+                    },
+                    options: { ...getCommonOptions(), plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10, family: 'Sarabun' } } } } }
+                });
+            }
+
+            const pCtx = document.getElementById('presChart');
+            if(pCtx) {
+                if(charts.presChart) charts.presChart.destroy();
+                charts.presChart = new Chart(pCtx, {
+                    type: chartTypes.presChart,
+                    data: { 
+                        labels: times, 
+                        datasets: eData.slice(3,7).map((d, i) => ({ 
+                            label: presLabels[i], 
+                            data: d, 
+                            borderColor: colors[i], 
+                            backgroundColor: chartTypes.presChart === 'bar' ? colors[i]+'cc' : 'transparent',
+                            tension: 0.3, 
+                            pointRadius: 2,
+                            borderRadius: chartTypes.presChart === 'bar' ? 4 : 0
+                        })) 
+                    },
+                    options: { ...getCommonOptions(), plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10, family: 'Sarabun' } } } } }
+                });
+            }
         }
 
         function resetData() {
-            if(confirm('ลบข้อมูลทั้งหมดที่บันทึกไว้ใช่หรือไม่?')) {
-                document.querySelectorAll('input:not([type="date"])').forEach(i => i.value = '');
+            if(confirm('ลบข้อมูลทั้งหมด?')) {
+                document.querySelectorAll('.data-input').forEach(i => i.value = '');
                 if(!document.getElementById('view-dashboard').classList.contains('hidden')) renderCharts();
             }
         }
 
         function downloadCSV() {
-            const date = document.getElementById('testDate').value || 'no-date';
-            let csv = "\uFEFFDate: " + date + "\n";
-            csv += "Case: " + document.getElementById('caseSelector').value + "\n\n";
-            csv += "Time,Amp,Volt,Watt,P1,P2,P3,P4,COP,EER," + tempLabels.join(",") + "\n";
-            
+            let csv = "\uFEFFDate: " + document.getElementById('testDate').value + "\nCase: " + document.getElementById('caseSelector').value + "\n\nTime,Amp,Volt,Watt,P1,P2,P3,P4,COP,EER," + tempLabels.join(",") + "\n";
             times.forEach((t, r) => {
                 let row = [t];
-                for(let c=0; c<9; c++) row.push(document.querySelector(`.e-in-${r}-${c}`).value || 0);
-                for(let c=0; c<12; c++) row.push(document.querySelector(`.t-in-${r}-${c}`).value || 0);
+                for(let c=0; c<9; c++) {
+                    const el = document.querySelector(`.e-in-${r}-${c}`);
+                    row.push(el ? el.value || 0 : 0);
+                }
+                for(let c=0; c<12; c++) {
+                    const el = document.querySelector(`.t-in-${r}-${c}`);
+                    row.push(el ? el.value || 0 : 0);
+                }
                 csv += row.join(',') + "\n";
             });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `AC_Report_${date}.csv`;
-            a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'Report.csv'; a.click();
         }
 
         window.onload = init;
