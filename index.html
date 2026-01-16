@@ -23,6 +23,7 @@
             min-height: 100vh;
         }
 
+        /* Enhanced Background Effects */
         .bg-mesh {
             position: fixed;
             top: 0;
@@ -32,10 +33,16 @@
             z-index: -1;
             background-color: #f8fafc;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.12) 0px, transparent 50%);
+            animation: meshMove 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes meshMove {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
         }
 
         .bg-grid {
@@ -51,12 +58,21 @@
             opacity: 0.4;
         }
 
+        /* Hover & Interaction Animations */
         .glass-card {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            border-color: rgba(79, 70, 229, 0.2);
         }
 
         .data-input {
@@ -68,23 +84,40 @@
             border: 1px solid #cbd5e1;
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.9);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
         }
 
         .data-input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
-            background-color: #fff;
-            transform: translateY(-1px);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            transform: scale(1.05);
+            z-index: 20;
         }
 
+        /* Tab Animations */
         .tab-btn {
-            @apply pb-4 px-4 text-sm font-bold uppercase tracking-widest border-b-4 border-transparent transition-all text-slate-400 hover:text-indigo-600;
+            @apply pb-4 px-4 text-sm font-bold uppercase tracking-widest border-b-4 border-transparent transition-all text-slate-400 relative;
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            width: 0;
+            height: 4px;
+            background: #4f46e5;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-active::after {
+            width: 100%;
         }
 
         .nav-active {
-            @apply border-indigo-600 text-indigo-600 font-black !important;
+            @apply text-indigo-600 font-black !important;
         }
 
         .sticky-col {
@@ -101,43 +134,38 @@
             width: 100%;
         }
 
-        .table-container {
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 transparent;
+        /* Reveal Animations */
+        @keyframes revealUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .table-container::-webkit-scrollbar { height: 8px; }
-        .table-container::-webkit-scrollbar-track { background: transparent; }
-        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
-
-        tr:hover td {
-            background-color: rgba(248, 250, 252, 0.8);
+        .reveal {
+            animation: revealUp 0.6s ease-out forwards;
         }
 
         @keyframes pulse-dot {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.4); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.5); opacity: 0.4; }
+            100% { transform: scale(1); opacity: 0.8; }
         }
         .live-dot { animation: pulse-dot 2s infinite; }
-        
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
 
-        .chart-type-toggle {
-            @apply flex bg-slate-200/50 p-1 rounded-xl gap-1;
+        /* Icon Animation */
+        .header-logo:hover svg {
+            animation: spin-once 0.6s ease-in-out;
         }
+
+        @keyframes spin-once {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         .chart-icon-btn {
             @apply p-1.5 rounded-lg transition-all flex items-center justify-center;
         }
         .chart-icon-btn.active {
-            @apply bg-white shadow-sm text-indigo-600;
-        }
-        .chart-icon-btn:not(.active) {
-            @apply text-slate-400 hover:bg-slate-200/50 hover:text-slate-600;
+            @apply bg-white shadow-sm text-indigo-600 scale-110;
         }
     </style>
 </head>
@@ -146,13 +174,13 @@
     <div class="bg-mesh"></div>
     <div class="bg-grid"></div>
 
-    <header class="bg-slate-900/90 backdrop-blur-md text-white shadow-xl sticky top-0 z-50">
+    <header class="bg-slate-900/90 backdrop-blur-xl text-white shadow-2xl sticky top-0 z-50 border-b border-white/10">
         <div class="max-w-[1600px] mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div class="flex items-center gap-4 group cursor-pointer header-logo">
+                <div class="w-10 h-10 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
-                <div>
+                <div class="transition-all group-hover:translate-x-1">
                     <h1 class="text-lg font-black tracking-tight uppercase leading-none">DATA LOGGER</h1>
                     <span class="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">Monitoring...</span>
                 </div>
@@ -160,16 +188,16 @@
             
             <div class="flex items-center gap-6">
                 <div class="hidden md:block text-right">
-                    <p id="liveTime" class="text-sm font-mono text-indigo-400 font-bold">00:00:00</p>
+                    <p id="liveTime" class="text-sm font-mono text-indigo-400 font-black drop-shadow-[0_0_8px_rgba(129,140,248,0.5)]">00:00:00</p>
                     <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">BANGKOK , TIME</p>
                 </div>
-                <div class="h-8 w-[1px] bg-slate-700"></div>
-                <div class="flex items-center gap-3">
+                <div class="h-8 w-[1px] bg-white/10"></div>
+                <div class="flex items-center gap-3 group">
                     <div class="text-right">
-                        <p class="text-xs font-bold">กำนันโต้ง</p>
-                        <p class="text-[9px] text-rose-500 font-black uppercase">หิวข้าวกระเพราหมูกรอบไข่ดาว</p>
+                        <p class="text-xs font-bold transition-all group-hover:text-indigo-400">กำนันโต้ง</p>
+                        <p class="text-[9px] text-rose-500 font-black uppercase tracking-tighter">หิวข้าวกระเพราหมูกรอบไข่ดาว</p>
                     </div>
-                    <div class="w-9 h-9 rounded-full bg-slate-700 border-2 border-indigo-500/50 flex items-center justify-center font-bold text-xs">KT</div>
+                    <div class="w-9 h-9 rounded-full bg-slate-800 border-2 border-indigo-500/50 flex items-center justify-center font-bold text-xs ring-4 ring-transparent group-hover:ring-indigo-500/20 transition-all">KT</div>
                 </div>
             </div>
         </div>
@@ -177,17 +205,17 @@
 
     <main class="max-w-[1600px] mx-auto p-4 md:p-8">
         
-        <div class="flex gap-8 border-b border-slate-200/50 mb-8 overflow-x-auto relative">
+        <div class="flex gap-8 border-b border-slate-200/50 mb-8 overflow-x-auto relative reveal" style="animation-delay: 0.1s">
             <button onclick="showTab('logger')" id="btn-logger" class="tab-btn nav-active">
                 1. บันทึกข้อมูล (Logger)
             </button>
             <button onclick="showTab('dashboard')" id="btn-dashboard" class="tab-btn">
-                2. กราฟ (Analytics)
+                2. วิเคราะห์กราฟ (Analytics)
             </button>
         </div>
 
         <div id="view-logger" class="space-y-6">
-            <div class="glass-card rounded-2xl p-6 border-l-8 border-indigo-600">
+            <div class="glass-card rounded-2xl p-6 border-l-8 border-indigo-600 reveal" style="animation-delay: 0.2s">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
                     <div class="md:col-span-3">
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Test Date</label>
@@ -203,14 +231,14 @@
                             <option value="3.5.5 ระบบใช้น้ำประปาผ่านถังเก็บ (7°C / 10°C)">3.5.5 ระบบใช้น้ำประปาผ่านถังเก็บ (7°C / 10°C)</option>
                         </select>
                     </div>
-                    <div id="waterInputGroup" class="hidden md:col-span-2 animate-fade-in">
+                    <div id="waterInputGroup" class="hidden md:col-span-2">
                         <label class="block text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-3">Water (L)</label>
                         <input type="number" id="waterVol" placeholder="0.00" class="w-full bg-indigo-50/80 border border-indigo-100 rounded-xl p-4 text-sm font-bold text-indigo-700 outline-none">
                     </div>
                 </div>
             </div>
 
-            <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-sm reveal" style="animation-delay: 0.3s">
                 <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                         <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
@@ -238,7 +266,7 @@
                 </div>
             </div>
 
-            <div class="glass-card rounded-2xl overflow-hidden shadow-sm">
+            <div class="glass-card rounded-2xl overflow-hidden shadow-sm reveal" style="animation-delay: 0.4s">
                 <div class="bg-slate-50/50 px-6 py-4 border-b border-slate-200">
                     <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                         <span class="w-3 h-3 bg-rose-500 rounded-full"></span>
@@ -256,8 +284,8 @@
             </div>
         </div>
 
-        <div id="view-dashboard" class="hidden space-y-6 animate-fade-in">
-            <div class="glass-card rounded-xl px-5 py-3 border-l-4 border-emerald-500 flex flex-col md:flex-row justify-between items-center gap-2">
+        <div id="view-dashboard" class="hidden space-y-6">
+            <div class="glass-card rounded-xl px-5 py-3 border-l-4 border-emerald-500 flex flex-col md:flex-row justify-between items-center gap-2 reveal">
                 <div class="flex items-center gap-3">
                     <div class="px-2 py-0.5 bg-emerald-500 text-white text-[9px] font-black rounded uppercase tracking-tighter">Selected</div>
                     <div>
@@ -273,13 +301,12 @@
                 </div>
             </div>
 
-            <!-- Electrical Charts Grid (3 Graphs Row) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Amp Chart -->
-                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="glass-card rounded-2xl p-6 shadow-sm reveal" style="animation-delay: 0.1s">
                     <div class="flex justify-between items-start mb-4">
                         <h4 class="text-xs font-black text-amber-500 uppercase flex items-center gap-2">
-                            <span class="w-2 h-2 bg-amber-500 rounded-full"></span> Ampere (A)
+                            <span class="w-2 h-2 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span> Ampere (A)
                         </h4>
                         <div class="chart-type-toggle" id="ampChart-toggle">
                             <button onclick="changeChartType('ampChart', 'line')" class="chart-icon-btn active" title="Line Chart" data-type="line">
@@ -293,10 +320,10 @@
                     <div class="chart-container h-[250px]"><canvas id="ampChart"></canvas></div>
                 </div>
                 <!-- Volt Chart -->
-                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="glass-card rounded-2xl p-6 shadow-sm reveal" style="animation-delay: 0.2s">
                     <div class="flex justify-between items-start mb-4">
                         <h4 class="text-xs font-black text-indigo-500 uppercase flex items-center gap-2">
-                            <span class="w-2 h-2 bg-indigo-500 rounded-full"></span> Voltage (V)
+                            <span class="w-2 h-2 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span> Voltage (V)
                         </h4>
                         <div class="chart-type-toggle" id="voltChart-toggle">
                             <button onclick="changeChartType('voltChart', 'line')" class="chart-icon-btn active" title="Line Chart" data-type="line">
@@ -310,10 +337,10 @@
                     <div class="chart-container h-[250px]"><canvas id="voltChart"></canvas></div>
                 </div>
                 <!-- Power Chart -->
-                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="glass-card rounded-2xl p-6 shadow-sm reveal" style="animation-delay: 0.3s">
                     <div class="flex justify-between items-start mb-4">
                         <h4 class="text-xs font-black text-emerald-500 uppercase flex items-center gap-2">
-                            <span class="w-2 h-2 bg-emerald-500 rounded-full"></span> Power (W)
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span> Power (W)
                         </h4>
                         <div class="chart-type-toggle" id="powerChart-toggle">
                             <button onclick="changeChartType('powerChart', 'line')" class="chart-icon-btn active" title="Line Chart" data-type="line">
@@ -330,7 +357,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Temp Chart -->
-                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="glass-card rounded-2xl p-6 shadow-sm reveal" style="animation-delay: 0.4s">
                     <div class="flex justify-between items-start mb-4">
                         <h3 class="text-sm font-black text-slate-800 flex items-center gap-3">
                             <div class="w-1.5 h-6 bg-rose-500 rounded-full"></div> Temperature Trends
@@ -347,7 +374,7 @@
                     <div class="chart-container"><canvas id="tempChart"></canvas></div>
                 </div>
                 <!-- Pressure Chart -->
-                <div class="glass-card rounded-2xl p-6 shadow-sm">
+                <div class="glass-card rounded-2xl p-6 shadow-sm reveal" style="animation-delay: 0.5s">
                     <div class="flex justify-between items-start mb-4">
                         <h3 class="text-sm font-black text-slate-800 flex items-center gap-3">
                             <div class="w-1.5 h-6 bg-amber-500 rounded-full"></div> Pressure Analysis
@@ -366,14 +393,17 @@
             </div>
         </div>
 
-        <footer class="mt-12 flex flex-col md:flex-row justify-between items-center bg-slate-900 rounded-3xl p-6 shadow-2xl text-white">
+        <footer class="mt-12 flex flex-col md:flex-row justify-between items-center bg-slate-900 rounded-3xl p-6 shadow-2xl text-white border border-white/5 reveal" style="animation-delay: 0.6s">
             <div class="flex items-center gap-4 mb-4 md:mb-0">
-                <div class="live-dot w-3 h-3 rounded-full bg-emerald-500"></div>
-                <p class="text-xs font-bold text-emerald-400">Online</p>
+                <div class="live-dot w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981]"></div>
+                <p class="text-xs font-bold text-emerald-400">System Ready & Synchronized</p>
             </div>
             <div class="flex gap-4">
-                <button onclick="resetData()" class="px-6 py-3 rounded-xl text-xs font-black text-slate-400 hover:text-white hover:bg-slate-800 transition-all uppercase">Clear All</button>
-                <button onclick="downloadCSV()" class="bg-indigo-600 hover:bg-indigo-500 px-10 py-3 rounded-xl text-xs font-black shadow-lg uppercase tracking-widest flex items-center gap-2">Export CSV</button>
+                <button onclick="resetData()" class="px-6 py-3 rounded-xl text-xs font-black text-slate-400 hover:text-white hover:bg-white/5 transition-all uppercase">Clear All</button>
+                <button onclick="downloadCSV()" class="bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-95 px-10 py-3 rounded-xl text-xs font-black shadow-lg uppercase tracking-widest flex items-center gap-2 transition-all">
+                    <span>Export CSV</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                </button>
             </div>
         </footer>
     </main>
@@ -396,6 +426,7 @@
             document.getElementById('view-dashboard').classList.toggle('hidden', tab !== 'dashboard');
             document.getElementById('btn-logger').classList.toggle('nav-active', tab === 'logger');
             document.getElementById('btn-dashboard').classList.toggle('nav-active', tab === 'dashboard');
+            
             if (tab === 'dashboard') {
                 updateAnalyticsHeader();
                 setTimeout(renderCharts, 50);
@@ -404,7 +435,13 @@
 
         function updateCaseInfo() {
             const val = document.getElementById('caseSelector').value;
-            document.getElementById('waterInputGroup').classList.toggle('hidden', !(val.includes('3.5.4') || val.includes('3.5.5')));
+            const group = document.getElementById('waterInputGroup');
+            if (val.includes('3.5.4') || val.includes('3.5.5')) {
+                group.classList.remove('hidden');
+                group.classList.add('reveal');
+            } else {
+                group.classList.add('hidden');
+            }
         }
 
         function updateAnalyticsHeader() {
@@ -458,16 +495,30 @@
         function renderCharts() {
             const tData = getTableData('t', 12);
             const eData = getTableData('e', 9);
-            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#8b5cf6'];
+            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#eab308', '#d946ef', '#14b8a6'];
 
             const getCommonOptions = () => ({
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 400 },
+                animation: { 
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 plugins: { legend: { display: false } },
                 scales: { 
-                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9, family: 'Sarabun' } } },
-                    x: { grid: { display: false }, ticks: { font: { size: 9, family: 'Sarabun' } } }
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(226, 232, 240, 0.5)' }, 
+                        ticks: { font: { size: 9, family: 'Sarabun' } } 
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { font: { size: 9, family: 'Sarabun' } } 
+                    }
                 }
             });
 
@@ -490,12 +541,21 @@
                         datasets: [{ 
                             data: conf.data, 
                             borderColor: conf.color, 
-                            backgroundColor: type === 'line' ? conf.color+'22' : conf.color+'cc', 
+                            backgroundColor: type === 'line' ? (ctx) => {
+                                const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 400);
+                                gradient.addColorStop(0, conf.color + '44');
+                                gradient.addColorStop(1, 'transparent');
+                                return gradient;
+                            } : conf.color + 'cc', 
                             fill: true, 
                             tension: 0.4, 
-                            borderWidth: 2,
-                            borderRadius: type === 'bar' ? 6 : 0,
-                            barThickness: 'flex'
+                            borderWidth: 3,
+                            borderRadius: type === 'bar' ? 8 : 0,
+                            barThickness: 'flex',
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: conf.color,
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 6
                         }] 
                     },
                     options: getCommonOptions()
@@ -509,7 +569,7 @@
                     type: chartTypes.tempChart,
                     data: { 
                         labels: times, 
-                        datasets: tData.slice(0,6).map((d, i) => ({ 
+                        datasets: tData.map((d, i) => ({ 
                             label: tempLabels[i], 
                             data: d, 
                             borderColor: colors[i], 
@@ -519,7 +579,16 @@
                             borderRadius: chartTypes.tempChart === 'bar' ? 4 : 0
                         })) 
                     },
-                    options: { ...getCommonOptions(), plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10, family: 'Sarabun' } } } } }
+                    options: { 
+                        ...getCommonOptions(), 
+                        plugins: { 
+                            legend: { 
+                                display: true, 
+                                position: 'bottom', 
+                                labels: { boxWidth: 8, font: { size: 9, family: 'Sarabun', weight: 'bold' }, padding: 10 } 
+                            } 
+                        } 
+                    }
                 });
             }
 
@@ -533,21 +602,34 @@
                         datasets: eData.slice(3,7).map((d, i) => ({ 
                             label: presLabels[i], 
                             data: d, 
-                            borderColor: colors[i], 
-                            backgroundColor: chartTypes.presChart === 'bar' ? colors[i]+'cc' : 'transparent',
+                            borderColor: colors[i + 4], 
+                            backgroundColor: chartTypes.presChart === 'bar' ? colors[i + 4]+'cc' : 'transparent',
                             tension: 0.3, 
                             pointRadius: 2,
                             borderRadius: chartTypes.presChart === 'bar' ? 4 : 0
                         })) 
                     },
-                    options: { ...getCommonOptions(), plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 8, font: { size: 10, family: 'Sarabun' } } } } }
+                    options: { 
+                        ...getCommonOptions(), 
+                        plugins: { 
+                            legend: { 
+                                display: true, 
+                                position: 'bottom', 
+                                labels: { boxWidth: 8, font: { size: 9, family: 'Sarabun', weight: 'bold' }, padding: 10 } 
+                            } 
+                        } 
+                    }
                 });
             }
         }
 
         function resetData() {
-            if(confirm('ลบข้อมูลทั้งหมด?')) {
-                document.querySelectorAll('.data-input').forEach(i => i.value = '');
+            if(confirm('ลบข้อมูลทั้งหมด? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
+                document.querySelectorAll('.data-input').forEach(i => {
+                    i.value = '';
+                    i.style.transform = 'scale(1.1)';
+                    setTimeout(() => i.style.transform = 'scale(1)', 300);
+                });
                 if(!document.getElementById('view-dashboard').classList.contains('hidden')) renderCharts();
             }
         }
@@ -566,7 +648,7 @@
                 }
                 csv += row.join(',') + "\n";
             });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'Report.csv'; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'Logger_Report_' + new Date().getTime() + '.csv'; a.click();
         }
 
         window.onload = init;
